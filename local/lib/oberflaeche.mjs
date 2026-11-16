@@ -19,8 +19,11 @@ const STATISCH = {
   "/": ["index.html", "text/html; charset=utf-8"],
   "/app.js": ["app.js", "text/javascript; charset=utf-8"],
   "/style.css": ["style.css", "text/css; charset=utf-8"],
-  "/logo.svg": ["logo.svg", "image/svg+xml"]
+  "/aiqora-logo.webp": ["aiqora-logo.webp", "image/webp"],
+  "/favicon.png": ["favicon.png", "image/png"]
 };
+// Logo und Icon dürfen auch ohne Sitzung geladen werden (Seite „bitte über den Desktop-Knopf öffnen“).
+const OEFFENTLICH = new Set(["/aiqora-logo.webp", "/favicon.png"]);
 
 const CSP = [
   "default-src 'self'", "script-src 'self'", "style-src 'self'", "img-src 'self' data: blob:",
@@ -64,8 +67,9 @@ function json(res, status, daten) {
 }
 
 const SEITE_OHNE_SITZUNG = `<!doctype html><html lang="de"><meta charset="utf-8"><title>AIQORA Studio</title>
+<link rel="icon" href="/favicon.png" type="image/png">
 <body style="font-family:system-ui;background:#0d0a14;color:#eee;display:grid;place-items:center;height:100vh;margin:0">
-<div style="max-width:420px;text-align:center"><h1>AIQORA Studio</h1>
+<div style="max-width:420px;text-align:center"><img src="/aiqora-logo.webp" alt="AIQORA" width="260"><h1>Studio</h1>
 <p>Bitte öffne das Studio über den Knopf „AIQORA Studio“ auf deinem Desktop.</p></div></body></html>`;
 
 function koerperLesen(req, max = 64 * 1024) {
@@ -223,6 +227,11 @@ export function erstelleServer({ token, aiqora, beimZugriff = () => {} }) {
 
     // Ping ohne Sitzung: verrät nur, dass hier das Studio läuft.
     if (url.pathname === "/api/ping") { json(res, 200, { app: "aiqora-studio" }); return; }
+    if ((req.method === "GET" || req.method === "HEAD") && OEFFENTLICH.has(url.pathname)) {
+      const [datei, typ] = STATISCH[url.pathname];
+      senden(res, 200, readFileSync(path.join(WEB_ORDNER, datei)), { "Content-Type": typ, "Cache-Control": "public, max-age=86400" });
+      return;
+    }
 
     // Einstieg: Kennwort aus dem Link gegen ein Sitzungs-Cookie tauschen.
     if (url.pathname === "/start") {

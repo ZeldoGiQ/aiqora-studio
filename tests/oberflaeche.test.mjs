@@ -82,6 +82,9 @@ test("ohne Sitzung gibt es nichts", async () => {
   const seite = await anfrage("/");
   assert.equal(seite.status, 401);
   assert.doesNotMatch(seite.text, /app\.js/);
+  const logo = await anfrage("/aiqora-logo.webp");
+  assert.equal(logo.status, 200, "Logo darf auch ohne Sitzung geladen werden");
+  assert.equal(logo.header["content-type"], "image/webp");
 });
 
 test("falsches Kennwort wird abgelehnt, richtiges setzt ein HttpOnly-Cookie", async () => {
