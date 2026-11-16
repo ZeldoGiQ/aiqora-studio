@@ -25,7 +25,7 @@ AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in
 
 1. In Claude Code eintippen:
    ```
-   /plugin marketplace add aiqora/aiqora-studio
+   /plugin marketplace add ZeldoGiQ/aiqora-studio
    /plugin install aiqora-studio@aiqora
    ```
 2. Wenn Claude Code danach fragt: deinen AIQORA-Schlüssel eintragen. Du findest ihn unter [aiqora.ai/settings](https://aiqora.ai/settings) bei „MCP API Keys“. Er wird sicher in deinem System gespeichert und nie im Chat angezeigt.
@@ -87,7 +87,7 @@ AIQORA Studio connects Claude Code to [AIQORA](https://aiqora.ai). Say what you 
 
 1. In Claude Code:
    ```
-   /plugin marketplace add aiqora/aiqora-studio
+   /plugin marketplace add ZeldoGiQ/aiqora-studio
    /plugin install aiqora-studio@aiqora
    ```
 2. When asked, enter your AIQORA key from [aiqora.ai/settings](https://aiqora.ai/settings) ("MCP API Keys"). It is stored in your system's secure storage and never shown in the chat.

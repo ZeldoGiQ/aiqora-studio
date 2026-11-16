@@ -8,7 +8,7 @@
     "url": "https://aiqora.ai"
   },
   "homepage": "https://aiqora.ai",
-  "repository": "https://github.com/aiqora/aiqora-studio",
+  "repository": "https://github.com/ZeldoGiQ/aiqora-studio",
   "keywords": ["aiqora", "video", "bild", "musik", "musikvideo", "ki"],
   "userConfig": {
     "aiqora_api_key": {

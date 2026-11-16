@@ -10,7 +10,7 @@ So arbeitest du mit mir: Sprich in meiner Sprache, kurz und ohne Fachwörter. Er
 Schritt 1: Prüfe, ob Node.js (Version 20 oder neuer) installiert ist. Fehlt es, sag mir in einem Satz, dass gleich ein Fenster nach Erlaubnis fragen kann und ich „Ja“ klicken soll, und installiere es (Windows: `winget install OpenJS.NodeJS.LTS`, Mac: `brew install node`). Prüfe auch ffmpeg; fehlt es, installiere es auf dieselbe Weise (`Gyan.FFmpeg` bzw. `ffmpeg`). Klappt ffmpeg nicht, mach ohne weiter.
 
 Schritt 2: Installiere das Plugin im Terminal:
-`claude plugin marketplace add aiqora/aiqora-studio`
+`claude plugin marketplace add ZeldoGiQ/aiqora-studio`
 `claude plugin install aiqora-studio@aiqora`
 
 Schritt 3: Lege auf dem Desktop einen Startknopf an, der Claude Code im Studio-Ordner startet. Der Studio-Ordner ist `AIQORA-Studio` in meinem Dokumente-Ordner (Windows: `[Environment]::GetFolderPath('MyDocuments')`, kann in OneDrive liegen; Mac: `~/Documents`). Lege den Ordner an, falls er fehlt.

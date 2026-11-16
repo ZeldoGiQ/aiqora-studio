@@ -27,7 +27,7 @@ if (-not (Hat claude)) {
 }
 
 Schritt 'Installiere das AIQORA Studio Plugin'
-claude plugin marketplace add aiqora/aiqora-studio
+claude plugin marketplace add ZeldoGiQ/aiqora-studio
 claude plugin install aiqora-studio@aiqora
 
 Schritt 'Lege den Studio-Ordner und den Startknopf an'
