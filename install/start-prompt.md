@@ -13,15 +13,12 @@ Schritt 2: Installiere das Plugin im Terminal:
 `claude plugin marketplace add ZeldoGiQ/aiqora-studio`
 `claude plugin install aiqora-studio@aiqora`
 
-Schritt 3: Lege auf dem Desktop einen Startknopf an, der Claude Code im Studio-Ordner startet. Der Studio-Ordner ist `AIQORA-Studio` in meinem Dokumente-Ordner (Windows: `[Environment]::GetFolderPath('MyDocuments')`, kann in OneDrive liegen; Mac: `~/Documents`). Lege den Ordner an, falls er fehlt.
+Schritt 3: Lies in `~/.claude/plugins/known_marketplaces.json` den Eintrag „aiqora“ → `installLocation`. Das ist der Studio-Programmordner. Lege auf dem Desktop einen Startknopf an, der die Studio-Oberfläche öffnet. Gibt es auf dem Desktop schon eine Datei mit demselben Namen, frag mich vorher, ob du sie ersetzen darfst.
 Windows: `AIQORA Studio.bat` mit
-```
 @echo off
-cd /d "<Studio-Ordner>"
-claude "/aiqora-studio:start"
-```
-Mac: `AIQORA Studio.command` mit `cd "<Studio-Ordner>" && claude "/aiqora-studio:start"`, danach `chmod +x`.
+start "" /min node "<Studio-Programmordner>\local\oberflaeche.mjs"
+Mac: `AIQORA Studio.command` mit `node "<Studio-Programmordner>/local/oberflaeche.mjs"`, danach `chmod +x`.
 
-Schritt 4: Habe ich dir schon einen Wunsch genannt (z. B. ein Musikvideo), schreib ihn in `wunsch.md` im Studio-Ordner.
+Schritt 4: Habe ich dir schon einen Wunsch genannt (z. B. ein Musikvideo), schreib ihn in `wunsch.md` im Ordner `AIQORA-Studio` in meinem Dokumente-Ordner (Windows: `[Environment]::GetFolderPath('MyDocuments')`, kann in OneDrive liegen; Mac: `~/Documents`). Lege den Ordner an, falls er fehlt.
 
-Schritt 5: Sag mir in höchstens drei Sätzen: Alles ist fertig. Schließe dieses Fenster und doppelklicke auf dem Desktop „AIQORA Studio“. Beim ersten Start fragt Claude Code nach meinem AIQORA-Schlüssel (zu finden unter https://aiqora.ai/settings bei „MCP API Keys“ → „Create API key“): einfügen, bestätigen, fertig.
+Schritt 5: Starte die Oberfläche einmal (`node "<Studio-Programmordner>/local/oberflaeche.mjs"`), damit sie sich im Browser öffnet. Sag mir dann in höchstens drei Sätzen: Alles ist fertig. Im Browser ist jetzt mein AIQORA Studio offen; beim ersten Mal trage ich unter „Einstellungen“ meinen AIQORA-Schlüssel ein (zu finden unter https://aiqora.ai/settings bei „MCP API Keys“ → „Create API key“). Künftig öffne ich das Studio mit dem Knopf „AIQORA Studio“ auf dem Desktop.

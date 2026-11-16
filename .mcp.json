@@ -12,6 +12,8 @@
       "args": ["${CLAUDE_PLUGIN_ROOT}/local/server.mjs"],
       "env": {
         "AIQORA_STUDIO_ORDNER": "${user_config.studio_ordner}",
+        "AIQORA_API_KEY": "${user_config.aiqora_api_key}",
+        "AIQORA_SCHLUESSEL_VOM_PLUGIN": "1",
         "AIQORA_BYOK_WAVESPEED": "${user_config.byok_wavespeed_key}",
         "AIQORA_BYOK_FAL": "${user_config.byok_fal_key}",
         "AIQORA_BYOK_ELEVENLABS": "${user_config.byok_elevenlabs_key}"

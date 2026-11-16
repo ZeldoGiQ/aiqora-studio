@@ -15,6 +15,8 @@ export function istEingerichtet() {
   return existsSync(path.join(s, "CLAUDE.md")) && existsSync(path.join(s, "projekte"));
 }
 
+// Steht in jeder Vorlage. Nur Dateien mit dieser Markierung werden beim Einrichten aktualisiert.
+export const VORLAGE_MARKE = "aiqora-studio:vorlage";
 // Dateien, die zum Produkt gehören und bei jedem Einrichten aktualisiert werden.
 const PRODUKT_DATEIEN = ["CLAUDE.md", "AGENTS.md", "dashboard.html"];
 // Dateien des Nutzers: nur anlegen, nie überschreiben.
@@ -25,10 +27,12 @@ export function einrichten() {
   for (const d of [s, path.join(s, "projekte"), path.join(s, "figuren"), path.join(s, "downloads")]) {
     mkdirSync(d, { recursive: true });
   }
-  const angelegt = [], aktualisiert = [];
+  const angelegt = [], aktualisiert = [], uebersprungen = [];
   for (const name of PRODUKT_DATEIEN) {
     const ziel = path.join(s, name);
     const vorher = existsSync(ziel) ? readFileSync(ziel, "utf8") : null;
+    // Eine gleichnamige Datei ohne Vorlagen-Markierung gehört dem Nutzer: nie überschreiben.
+    if (vorher !== null && !vorher.includes(VORLAGE_MARKE)) { uebersprungen.push(name); continue; }
     let inhalt = readFileSync(path.join(VORLAGE_ORDNER, name), "utf8");
     if (name === "AGENTS.md") inhalt = inhalt.replaceAll("{{AIQORA_STUDIO_SKILLS}}", SKILLS_ORDNER.replaceAll("\\", "/"));
     if (vorher !== inhalt) {
@@ -41,7 +45,7 @@ export function einrichten() {
     if (!existsSync(ziel)) { copyFileSync(path.join(VORLAGE_ORDNER, name), ziel); angelegt.push(name); }
   }
   writeFileSync(path.join(s, ".studio-version"), version() + "\n", "utf8");
-  return { studio_ordner: s, angelegt, aktualisiert };
+  return { studio_ordner: s, angelegt, aktualisiert, uebersprungen };
 }
 
 function pruefeEingerichtet() {

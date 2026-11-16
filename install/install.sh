@@ -30,11 +30,20 @@ claude plugin install aiqora-studio@aiqora
 schritt "Lege den Studio-Ordner und den Startknopf an"
 STUDIO="$HOME/Documents/AIQORA-Studio"
 mkdir -p "$STUDIO"
+PROGRAMM="$(node -e 'const m=require(require("os").homedir()+"/.claude/plugins/known_marketplaces.json");process.stdout.write(m.aiqora.installLocation)')"
+STARTER="$PROGRAMM/local/oberflaeche.mjs"
 if [ "$(uname)" = "Darwin" ]; then
   START="$HOME/Desktop/AIQORA Studio.command"
-  printf '#!/bin/bash\ncd "%s" && claude "/aiqora-studio:start"\n' "$STUDIO" > "$START"
+  if [ -e "$START" ] && ! grep -qE 'oberflaeche\.mjs|aiqora-studio:start' "$START"; then
+    START="$HOME/Desktop/AIQORA Studio (neu).command"
+    echo 'Auf dem Desktop gibt es schon einen eigenen "AIQORA Studio"-Knopf. Der neue heißt "AIQORA Studio (neu)".'
+  fi
+  printf '#!/bin/bash\nnode "%s"\n' "$STARTER" > "$START"
   chmod +x "$START"
 fi
 
-printf '\n\033[32mFertig!\033[0m Doppelklicke auf dem Desktop "AIQORA Studio".\n'
-echo 'Beim ersten Start fragt Claude Code nach deinem AIQORA-Schlüssel (aiqora.ai/settings → "MCP API Keys").'
+schritt "Öffne das Studio"
+node "$STARTER" >/dev/null
+
+printf '\n\033[32mFertig!\033[0m Das Studio ist im Browser offen. Künftig startest du es mit "AIQORA Studio" auf dem Desktop.\n'
+echo 'Beim ersten Mal trägst du unter "Einstellungen" deinen AIQORA-Schlüssel ein (aiqora.ai/settings → "MCP API Keys").'

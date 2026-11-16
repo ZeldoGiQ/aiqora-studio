@@ -20,7 +20,7 @@ test("MCP-Handshake, Werkzeugliste und unbekannte Methoden", async () => {
     const namen = liste.result.tools.map((t) => t.name);
     for (const n of ["studio_info", "studio_einrichten", "projekt_anlegen", "datei_herunterladen", "datei_hochladen",
       "datei_oeffnen", "schnitt_kuerzen", "schnitt_zusammenfuegen", "schnitt_hochkant", "schnitt_lautheit",
-      "dashboard_aktualisieren", "byok_status", "byok_bild"]) {
+      "dashboard_aktualisieren", "byok_status", "byok_bild", "oberflaeche_oeffnen"]) {
       assert.ok(namen.includes(n), `Werkzeug fehlt: ${n}`);
     }
     for (const t of liste.result.tools) assert.equal(t.inputSchema.type, "object");
@@ -49,8 +49,11 @@ test("Studio einrichten, Projekt anlegen, Dashboard", async () => {
     assert.ok(!readFileSync(path.join(studio, "AGENTS.md"), "utf8").includes("{{"), "Platzhalter in AGENTS.md nicht ersetzt");
 
     writeFileSync(path.join(studio, "regeln.md"), "# Meine Regeln\n- immer breit\n");
-    await h.aufruf("studio_einrichten");
+    writeFileSync(path.join(studio, "CLAUDE.md"), "# Meine eigene Anleitung\n");
+    const zweites = await h.aufruf("studio_einrichten");
     assert.match(readFileSync(path.join(studio, "regeln.md"), "utf8"), /immer breit/, "regeln.md darf nicht überschrieben werden");
+    assert.equal(readFileSync(path.join(studio, "CLAUDE.md"), "utf8"), "# Meine eigene Anleitung\n", "eigene CLAUDE.md darf nicht überschrieben werden");
+    assert.deepEqual(zweites.daten.uebersprungen, ["CLAUDE.md"]);
 
     const info = await h.aufruf("studio_info");
     assert.equal(info.daten.eingerichtet, true);

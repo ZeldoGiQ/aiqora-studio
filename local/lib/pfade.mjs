@@ -37,6 +37,19 @@ export function dokumenteOrdner() {
   return ordner;
 }
 
+/**
+ * Ordner für interne Daten der App (Sitzungsdatei, gespeicherter Schlüssel).
+ * Bewusst nicht im Studio-Ordner, weil der oft mit OneDrive oder iCloud synchronisiert wird.
+ */
+export function appDatenOrdner() {
+  const eigen = umgebung("AIQORA_APP_DATEN");
+  if (eigen) return path.resolve(eigen);
+  const home = os.homedir();
+  if (process.platform === "win32") return path.join(process.env.LOCALAPPDATA || path.join(home, "AppData", "Local"), "AIQORA-Studio");
+  if (process.platform === "darwin") return path.join(home, "Library", "Application Support", "AIQORA-Studio");
+  return path.join(process.env.XDG_STATE_HOME || path.join(home, ".local", "state"), "aiqora-studio");
+}
+
 export function studioOrdner() {
   const eigen = umgebung("AIQORA_STUDIO_ORDNER");
   return path.resolve(eigen || path.join(dokumenteOrdner(), STUDIO_NAME));

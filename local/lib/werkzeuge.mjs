@@ -1,9 +1,24 @@
 // Die Werkzeuge des lokalen Helfers: Name, Beschreibung, Eingabe-Schema, Ausführung.
-import { Fehler, studioOrdner } from "./pfade.mjs";
+import { execFile } from "node:child_process";
+import path from "node:path";
+import { Fehler, PLUGIN_ROOT, studioOrdner } from "./pfade.mjs";
 import * as studio from "./studio.mjs";
 import * as dateien from "./dateien.mjs";
 import * as schnitt from "./schnitt.mjs";
 import * as byok from "./byok.mjs";
+
+const STARTER = path.join(PLUGIN_ROOT, "local", "oberflaeche.mjs");
+
+function oberflaecheOeffnen() {
+  return new Promise((resolve, reject) => {
+    execFile(process.execPath, [STARTER], { timeout: 30000, windowsHide: true, env: process.env }, (err, stdout) => {
+      let r = null;
+      try { r = JSON.parse(String(stdout).trim().split("\n").pop()); } catch { /* unten */ }
+      if (err || !r?.ok) reject(new Fehler(r?.fehler || "Die Oberfläche konnte nicht gestartet werden."));
+      else resolve({ geoeffnet: true, adresse: r.adresse, hinweis: "Das Studio ist im Browser geöffnet." });
+    });
+  });
+}
 
 const s = (description) => ({ type: "string", description });
 const n = (description) => ({ type: "number", description });
@@ -27,6 +42,12 @@ export const WERKZEUGE = [
     description: "Legt den Studio-Ordner an bzw. aktualisiert ihn (Anleitung, Dashboard). Eigene Regeln und Dashboard-Daten des Nutzers bleiben erhalten.",
     inputSchema: obj({}),
     run: async () => studio.einrichten()
+  },
+  {
+    name: "oberflaeche_oeffnen",
+    description: "Öffnet die Oberfläche des Studios im Browser (Projekte, Galerie, Guthaben, Aufträge). Startet sie im Hintergrund, falls sie noch nicht läuft.",
+    inputSchema: obj({}),
+    run: async () => oberflaecheOeffnen()
   },
   {
     name: "projekt_anlegen",
