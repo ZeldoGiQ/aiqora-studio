@@ -2,7 +2,7 @@
 
 Hier steht in einfachen Worten, was sich in jeder Version geändert hat.
 
-## 0.1.0 (in Arbeit)
+## 0.2.0 (in Arbeit)
 
 - Erste Version des Studios als Claude-Code-Plugin.
 - Befehle für Start, Bild, Video, Musik, Musikvideo, Cinema Agent, Short Drama, Doku, Figuren, Status, Hilfe und Update.
