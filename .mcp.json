@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "aiqora": {
+      "type": "http",
+      "url": "https://sfqaotcueeifbrlttasu.supabase.co/functions/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer ${user_config.aiqora_api_key}"
+      }
+    },
+    "aiqora-local": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/local/server.mjs"],
+      "env": {
+        "AIQORA_STUDIO_ORDNER": "${user_config.studio_ordner}",
+        "AIQORA_BYOK_WAVESPEED": "${user_config.byok_wavespeed_key}",
+        "AIQORA_BYOK_FAL": "${user_config.byok_fal_key}",
+        "AIQORA_BYOK_ELEVENLABS": "${user_config.byok_elevenlabs_key}"
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "aiqora",
+  "description": "Offizielle Plugins von AIQORA",
+  "owner": {
+    "name": "AIQORA",
+    "url": "https://aiqora.ai"
+  },
+  "plugins": [
+    {
+      "name": "aiqora-studio",
+      "source": "./",
+      "description": "Dein KI-Studio für Bilder, Videos, Musik und Musikvideos mit AIQORA. Ohne Programmieren.",
+      "category": "media",
+      "tags": ["video", "bild", "musik", "musikvideo"]
+    }
+  ]
+}

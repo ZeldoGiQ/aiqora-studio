@@ -1,0 +1,12 @@
+{
+  "name": "aiqora-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AIQORA Studio: Claude-Code-Plugin und lokaler Helfer",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test",
+    "start:local": "node local/server.mjs"
+  }
+}

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta http-equiv="refresh" content="15">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>AIQORA Studio</title>
+<style>
+:root{--bg:#f6f5fb;--card:#fff;--text:#1b1830;--muted:#6b6785;--accent:#c026d3;--ok:#16a34a;--run:#d97706;--err:#dc2626}
+@media (prefers-color-scheme:dark){:root{--bg:#0e0c18;--card:#1a1728;--text:#f2f0fa;--muted:#9a95b5}}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);padding:24px 16px}
+h1{max-width:1100px;margin:0 auto 16px;font-size:22px}h1 span{color:var(--accent)}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));max-width:1100px;margin:auto}
+.card{background:var(--card);border-radius:16px;padding:20px;min-width:0}
+h2{font-size:13px;color:var(--muted);margin:0 0 12px;text-transform:uppercase;letter-spacing:.05em}
+.big{font-size:48px;font-weight:700}.muted{color:var(--muted);font-size:14px}
+ul{list-style:none;padding:0;margin:0}li{padding:8px 0;border-bottom:1px solid rgba(128,128,160,.2);display:flex;justify-content:space-between;gap:8px;font-size:14px;overflow-wrap:anywhere}
+a{color:var(--accent)}.ok{color:var(--ok)}.laeuft{color:var(--run)}.fehler{color:var(--err)}
+</style></head><body>
+<h1><span>AIQORA</span> Studio</h1><div class="grid" id="app"></div>
+<script src="daten.js"></script>
+<script>
+const d=window.AIQORA_DATA||{},L={ok:"fertig",laeuft:"läuft",fehler:"Fehler"};
+const e=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const href=s=>/^(https?:|javascript:|data:)/i.test(String(s??""))&&!/^https?:/i.test(String(s))?"#":e(s);
+const list=(a,f)=>Array.isArray(a)&&a.length?"<ul>"+a.map(f).join("")+"</ul>":'<p class="muted">Noch nichts da.</p>';
+document.getElementById("app").innerHTML=`
+<div class="card"><h2>Credits</h2><div class="big">${e(d.credits??"?")}</div><p class="muted">${e(d.reichtFuer)}</p><p class="muted">Stand: ${e(d.aktualisiert)}</p></div>
+<div class="card"><h2>Tipp</h2><p>${e(d.tipp)}</p></div>
+<div class="card"><h2>Letzte Aufträge</h2>${list(d.jobs,j=>`<li><span>${j.datei?`<a href="${href(j.datei)}">${e(j.name)}</a>`:e(j.name)}</span><span class="${e(j.status)}">${e(L[j.status]||j.status)} · ${e(j.credits)} Cr</span></li>`)}</div>
+<div class="card"><h2>Projekte</h2>${list(d.projekte,p=>`<li><a href="${href(p.ordner)}">${e(p.name)}</a><span class="muted">${e(p.stand)}</span></li>`)}</div>
+<div class="card"><h2>Was AIQORA kann</h2>${list(d.modelle,m=>`<li><span>${e(m.name)}</span><span class="muted">${e(m.art)} · ${e(m.credits)}</span></li>`)}</div>`;
+</script></body></html>

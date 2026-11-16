@@ -1,0 +1,45 @@
+{
+  "name": "aiqora-studio",
+  "displayName": "AIQORA Studio",
+  "version": "0.1.0",
+  "description": "Dein KI-Studio für Bilder, Videos, Musik und Musikvideos mit AIQORA. Ohne Programmieren.",
+  "author": {
+    "name": "AIQORA",
+    "url": "https://aiqora.ai"
+  },
+  "homepage": "https://aiqora.ai",
+  "repository": "https://github.com/aiqora/aiqora-studio",
+  "keywords": ["aiqora", "video", "bild", "musik", "musikvideo", "ki"],
+  "userConfig": {
+    "aiqora_api_key": {
+      "type": "string",
+      "title": "AIQORA-Schlüssel",
+      "description": "Dein Schlüssel von aiqora.ai/settings (\"MCP API Keys\" → \"Create API key\"). Wird sicher auf deinem Rechner gespeichert.",
+      "sensitive": true,
+      "required": true
+    },
+    "byok_wavespeed_key": {
+      "type": "string",
+      "title": "Eigener WaveSpeed-Schlüssel (optional, nur mit Abo)",
+      "description": "Für einfache Bilder und Clips mit deinem eigenen Konto. Bleibt auf deinem Rechner und geht nie an AIQORA. Leer lassen, wenn du nur AIQORA-Credits nutzt.",
+      "sensitive": true
+    },
+    "byok_fal_key": {
+      "type": "string",
+      "title": "Eigener fal-Schlüssel (optional, nur mit Abo)",
+      "description": "Für einfache Bilder und Clips mit deinem eigenen Konto. Bleibt auf deinem Rechner und geht nie an AIQORA. Leer lassen, wenn du nur AIQORA-Credits nutzt.",
+      "sensitive": true
+    },
+    "byok_elevenlabs_key": {
+      "type": "string",
+      "title": "Eigener ElevenLabs-Schlüssel (optional, nur mit Abo)",
+      "description": "Für Stimmen mit deinem eigenen Konto. Bleibt auf deinem Rechner und geht nie an AIQORA. Leer lassen, wenn du nur AIQORA-Credits nutzt.",
+      "sensitive": true
+    },
+    "studio_ordner": {
+      "type": "directory",
+      "title": "Studio-Ordner (optional)",
+      "description": "Wo deine Projekte gespeichert werden. Leer lassen für den Standard: AIQORA-Studio in deinem Dokumente-Ordner."
+    }
+  }
+}
