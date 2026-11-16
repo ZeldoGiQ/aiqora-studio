@@ -7,7 +7,7 @@
 AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in normaler Sprache, was du willst („Mach mir ein Musikvideo zu meinem Song“), das Studio kümmert sich um den Rest: Kosten vorher ansagen, erzeugen lassen, herunterladen, öffnen.
 
 - **Alles in einem Ordner:** jedes Vorhaben bekommt einen Projektordner mit Bildern, Clips, Ton und dem fertigen Ergebnis.
-- **Dashboard:** Guthaben, letzte Aufträge und Projekte auf einen Blick.
+- **Eigene Oberfläche:** Das Studio öffnet sich im Browser, läuft aber nur auf deinem Rechner. Projekte mit Galerie und Player, Guthaben und Aufträge auf einen Blick.
 - **Spart deine Claude-Tokens:** Aufwendige Abläufe (Musikvideo, Cinema Agent, Short Drama) laufen als ein einziger Auftrag bei AIQORA, nicht als hunderte Einzelschritte auf deinem Rechner.
 - **Updates inklusive:** neue Funktionen kommen automatisch.
 

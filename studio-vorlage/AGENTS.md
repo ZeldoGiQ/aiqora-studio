@@ -1,3 +1,4 @@
+<!-- aiqora-studio:vorlage: Diese Datei wird bei Updates ersetzt. Eigene Regeln gehören in regeln.md. -->
 # AIQORA Studio (für Codex)
 
 Lies und befolge `CLAUDE.md` in diesem Ordner. Sie gilt für dich genauso.

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AIQORA Studio</title>
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" type="module"></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="seitenleiste">
+      <a class="marke" href="#/">
+        <img src="/logo.svg" alt="" width="32" height="32">
+        <span><strong>AIQORA</strong> Studio</span>
+      </a>
+      <nav class="navigation" aria-label="Hauptnavigation">
+        <a href="#/" data-seite="start"><span class="symbol" aria-hidden="true">◆</span>Start</a>
+        <a href="#/projekte" data-seite="projekte"><span class="symbol" aria-hidden="true">▦</span>Projekte</a>
+        <a href="#/auftraege" data-seite="auftraege"><span class="symbol" aria-hidden="true">≡</span>Aufträge</a>
+        <a href="#/einstellungen" data-seite="einstellungen"><span class="symbol" aria-hidden="true">⚙</span>Einstellungen</a>
+      </nav>
+      <div class="guthaben-klein" id="guthaben-klein" hidden>
+        <span class="beschriftung">Guthaben</span>
+        <span class="wert" id="guthaben-klein-wert">–</span>
+      </div>
+    </aside>
+    <main class="inhalt" id="inhalt" tabindex="-1"></main>
+  </div>
+  <dialog class="ansicht" id="ansicht" aria-label="Datei ansehen">
+    <div class="ansicht-kopf">
+      <span class="ansicht-titel" id="ansicht-titel"></span>
+      <div class="ansicht-knoepfe">
+        <button type="button" class="knopf zweitrangig" id="ansicht-ordner">Im Ordner zeigen</button>
+        <button type="button" class="knopf zweitrangig" id="ansicht-zu" aria-label="Schließen">✕</button>
+      </div>
+    </div>
+    <div class="ansicht-buehne" id="ansicht-buehne"></div>
+  </dialog>
+</body>
+</html>
