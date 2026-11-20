@@ -1,5 +1,5 @@
 // Der AIQORA-Schlüssel auf dem eigenen Rechner.
-// Reihenfolge beim Lesen: vom Plugin übergeben (Claude Code speichert ihn sicher) → in der App gespeichert
+// Reihenfolge beim Lesen: in der App gespeichert → vom Plugin übergeben (Claude Code speichert ihn sicher)
 // → Umgebungsvariable des Systems. Der Schlüssel wird nie angezeigt, geloggt oder an den Browser gegeben.
 // Gespeichert wird verschlüsselt: Windows mit DPAPI (an das Benutzerkonto gebunden), Mac im Schlüsselbund,
 // sonst in einer Datei, die nur der Benutzer lesen darf.
@@ -104,13 +104,16 @@ function ausRegistry() {
   }
 }
 
-/** Liefert { wert, quelle } oder { wert: "", quelle: null }. quelle: plugin | gespeichert | umgebung */
+/**
+ * Liefert { wert, quelle } oder { wert: "", quelle: null }. quelle: gespeichert | plugin | umgebung
+ * Der in der App gespeicherte Schlüssel gewinnt, damit Oberfläche, lokaler Helfer und Claude Code
+ * (über local/kopfzeilen.mjs) immer denselben Schlüssel nehmen.
+ */
 export async function finden() {
-  const plugin = umgebung("AIQORA_API_KEY");
-  if (plugin && umgebung("AIQORA_SCHLUESSEL_VOM_PLUGIN") === "1") return { wert: plugin, quelle: "plugin" };
   const g = await gespeichert();
   if (g) return { wert: g, quelle: "gespeichert" };
-  if (plugin) return { wert: plugin, quelle: "umgebung" };
+  const plugin = umgebung("AIQORA_API_KEY");
+  if (plugin) return { wert: plugin, quelle: umgebung("AIQORA_SCHLUESSEL_VOM_PLUGIN") === "1" ? "plugin" : "umgebung" };
   const reg = umgebung("AIQORA_KEIN_REGISTRY") === "1" ? "" : ausRegistry();
   if (reg) return { wert: reg, quelle: "umgebung" };
   return { wert: "", quelle: null };
