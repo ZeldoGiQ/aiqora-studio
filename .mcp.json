@@ -5,7 +5,8 @@
       "url": "https://sfqaotcueeifbrlttasu.supabase.co/functions/v1/mcp",
       "headers": {
         "Authorization": "Bearer ${user_config.aiqora_api_key}"
-      }
+      },
+      "headersHelper": "node \"${CLAUDE_PLUGIN_ROOT}/local/kopfzeilen.mjs\""
     },
     "aiqora-local": {
       "command": "node",

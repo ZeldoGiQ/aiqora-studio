@@ -2,7 +2,11 @@
 
 Hier steht in einfachen Worten, was sich in jeder Version geändert hat.
 
-## 0.2.0 (in Arbeit)
+## 0.2.1
+
+- Den AIQORA-Schlüssel trägst du nur noch einmal ein: im Studio im Browser unter „Einstellungen“. Er gilt dann auch in Claude Code. Claude Code fragt nicht mehr zusätzlich danach.
+
+## 0.2.0
 
 - Erste Version des Studios als Claude-Code-Plugin.
 - Befehle für Start, Bild, Video, Musik, Musikvideo, Cinema Agent, Short Drama, Doku, Figuren, Status, Hilfe und Update.

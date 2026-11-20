@@ -1,7 +1,7 @@
 {
   "name": "aiqora-studio",
   "displayName": "AIQORA Studio",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Dein KI-Studio für Bilder, Videos, Musik und Musikvideos mit AIQORA. Ohne Programmieren.",
   "author": {
     "name": "AIQORA",
@@ -14,9 +14,8 @@
     "aiqora_api_key": {
       "type": "string",
       "title": "AIQORA-Schlüssel",
-      "description": "Dein Schlüssel von aiqora.ai/settings (\"MCP API Keys\" → \"Create API key\"). Wird sicher auf deinem Rechner gespeichert.",
-      "sensitive": true,
-      "required": true
+      "description": "Leer lassen: Du trägst den Schlüssel einfacher im Studio im Browser unter \"Einstellungen\" ein, er gilt dann auch hier. Nur ausfüllen, wenn du das Studio ohne Browser nutzt. Schlüssel von aiqora.ai/settings (\"MCP API Keys\" → \"Create API key\").",
+      "sensitive": true
     },
     "byok_wavespeed_key": {
       "type": "string",

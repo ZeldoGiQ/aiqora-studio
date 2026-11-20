@@ -28,7 +28,7 @@ AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in
    /plugin marketplace add ZeldoGiQ/aiqora-studio
    /plugin install aiqora-studio@aiqora
    ```
-2. Wenn Claude Code danach fragt: deinen AIQORA-Schlüssel eintragen. Du findest ihn unter [aiqora.ai/settings](https://aiqora.ai/settings) bei „MCP API Keys“. Er wird sicher in deinem System gespeichert und nie im Chat angezeigt.
+2. Fragt Claude Code nach dem AIQORA-Schlüssel, das Feld einfach leer lassen. Du trägst den Schlüssel einmal im Studio im Browser unter „Einstellungen“ ein, dann gilt er überall, auch in Claude Code. Du findest ihn unter [aiqora.ai/settings](https://aiqora.ai/settings) bei „MCP API Keys“. Er wird verschlüsselt auf deinem Rechner gespeichert und nie im Chat angezeigt.
 3. Claude Code neu starten und eintippen:
    ```
    /aiqora-studio:start
@@ -90,7 +90,7 @@ AIQORA Studio connects Claude Code to [AIQORA](https://aiqora.ai). Say what you 
    /plugin marketplace add ZeldoGiQ/aiqora-studio
    /plugin install aiqora-studio@aiqora
    ```
-2. When asked, enter your AIQORA key from [aiqora.ai/settings](https://aiqora.ai/settings) ("MCP API Keys"). It is stored in your system's secure storage and never shown in the chat.
+2. If Claude Code asks for the AIQORA key, leave it empty. Enter your key once in the studio in your browser under "Einstellungen" (settings); it then applies everywhere, Claude Code included. Get it from [aiqora.ai/settings](https://aiqora.ai/settings) ("MCP API Keys"). It is stored encrypted on your computer and never shown in the chat.
 3. Restart Claude Code and type `/aiqora-studio:start`.
 
 Generating costs AIQORA credits; the studio always tells you the cost first. Subscribers can bring their own provider keys (BYOK) for simple single generations. **BYOK keys never leave your computer** and are never sent to AIQORA. Full workflows (music video, Cinema Agent, Short Drama) always run on AIQORA.
