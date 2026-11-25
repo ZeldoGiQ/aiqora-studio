@@ -2,7 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -50,4 +50,20 @@ test("in der App gespeicherter Schlüssel gewinnt, auch für Claude Code", async
   assert.deepEqual(helfer(), { Authorization: `Bearer ${APP}` });
   await schluessel.loeschen();
   assert.deepEqual(helfer(), {});
+});
+
+test("Schlüssel vom alten Speicherort wird übernommen, Löschen entfernt auch die alte Kopie", async () => {
+  const alt = path.join(basis, "alt");
+  mkdirSync(alt, { recursive: true });
+  writeFileSync(path.join(alt, "schluessel"), APP + "\n");
+  process.env.AIQORA_ALTE_APP_DATEN = alt;
+  try {
+    assert.deepEqual(await schluessel.finden(), { wert: APP, quelle: "gespeichert" });
+    assert.ok(existsSync(path.join(UMGEBUNG.AIQORA_APP_DATEN, "schluessel")), "an den neuen Ort kopiert");
+    await schluessel.loeschen();
+    assert.ok(!existsSync(path.join(alt, "schluessel")), "alte Kopie gelöscht");
+    assert.equal(await schluessel.gespeichert(), "");
+  } finally {
+    delete process.env.AIQORA_ALTE_APP_DATEN;
+  }
 });

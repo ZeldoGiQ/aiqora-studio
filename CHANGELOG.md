@@ -2,6 +2,10 @@
 
 Hier steht in einfachen Worten, was sich in jeder Version geändert hat.
 
+## 0.2.2
+
+- Behoben: Ein im Studio eingetragener AIQORA-Schlüssel ging verloren, wenn das Studio einmal aus Claude heraus und später über den Desktop-Knopf gestartet wurde. Er wurde dann abgelehnt. Das Studio speichert seine Daten jetzt an einem Ort, den Windows nicht umleitet, und übernimmt einen schon eingetragenen Schlüssel automatisch.
+
 ## 0.2.1
 
 - Den AIQORA-Schlüssel trägst du nur noch einmal ein: im Studio im Browser unter „Einstellungen“. Er gilt dann auch in Claude Code. Claude Code fragt nicht mehr zusätzlich danach.

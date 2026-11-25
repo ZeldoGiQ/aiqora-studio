@@ -4,9 +4,9 @@
 // Gespeichert wird verschlüsselt: Windows mit DPAPI (an das Benutzerkonto gebunden), Mac im Schlüsselbund,
 // sonst in einer Datei, die nur der Benutzer lesen darf.
 import { execFile, execFileSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { Fehler, appDatenOrdner, umgebung } from "./pfade.mjs";
+import { Fehler, alteAppDatenOrdner, appDatenOrdner, umgebung } from "./pfade.mjs";
 
 const DIENST = "aiqora-studio";
 const KONTO = "aiqora_api_key";
@@ -23,7 +23,23 @@ function art() {
   return "datei";
 }
 
-const dateiPfad = () => path.join(appDatenOrdner(), art() === "dpapi" ? "schluessel.dpapi" : "schluessel");
+const dateiName = () => (art() === "dpapi" ? "schluessel.dpapi" : "schluessel");
+const dateiPfad = () => path.join(appDatenOrdner(), dateiName());
+const alteDateien = () => alteAppDatenOrdner().map((o) => path.join(o, dateiName())).filter((d) => d !== dateiPfad());
+
+/** Übernimmt einen Schlüssel von einem früheren Speicherort (siehe pfade.mjs). true, wenn einer gefunden wurde. */
+function altenUebernehmen() {
+  const alt = alteDateien().find((d) => existsSync(d));
+  if (!alt) return false;
+  try {
+    mkdirSync(appDatenOrdner(), { recursive: true });
+    copyFileSync(alt, dateiPfad());
+    try { chmodSync(dateiPfad(), 0o600); } catch { /* Windows */ }
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function mitEingabe(cmd, args, eingabe) {
   return new Promise((resolve, reject) => {
@@ -68,7 +84,7 @@ export async function gespeichert() {
   try {
     switch (art()) {
       case "dpapi":
-        if (!existsSync(dateiPfad())) return "";
+        if (!existsSync(dateiPfad()) && !altenUebernehmen()) return "";
         return await mitEingabe("powershell.exe", [...PS, PS_ENTSCHLUESSELN], readFileSync(dateiPfad(), "utf8"));
       case "schluesselbund":
         return await new Promise((resolve) => {
@@ -76,7 +92,8 @@ export async function gespeichert() {
             { timeout: 10000 }, (err, stdout) => resolve(err ? "" : String(stdout).trim()));
         });
       default:
-        return existsSync(dateiPfad()) ? readFileSync(dateiPfad(), "utf8").trim() : "";
+        if (!existsSync(dateiPfad()) && !altenUebernehmen()) return "";
+        return readFileSync(dateiPfad(), "utf8").trim();
     }
   } catch {
     return "";
@@ -88,7 +105,10 @@ export async function loeschen() {
     await new Promise((resolve) => execFile("security", ["delete-generic-password", "-s", DIENST, "-a", KONTO], () => resolve()));
     return;
   }
-  if (existsSync(dateiPfad())) unlinkSync(dateiPfad());
+  // Auch alte Kopien löschen, sonst käme der Schlüssel beim nächsten Lesen von dort zurück.
+  for (const d of [dateiPfad(), ...alteDateien()]) {
+    try { if (existsSync(d)) unlinkSync(d); } catch { /* weiter mit den anderen */ }
+  }
 }
 
 /** Windows: dauerhaft gesetzte Benutzer-Umgebungsvariable (auch wenn der Prozess sie noch nicht kennt). */
