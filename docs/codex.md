@@ -4,7 +4,7 @@ Das Studio läuft auch in Codex: im Terminal, in der IDE-Erweiterung und in der 
 
 ## Einfachster Weg
 
-Öffne Codex, füge den Text aus [`install/start-prompt-andere.md`](../install/start-prompt-andere.md) ein und drücke Enter. Codex erledigt den Rest.
+Öffne Codex, füge den Text aus [`install/start-prompt.md`](../install/start-prompt.md) ein und drücke Enter. Codex erledigt den Rest.
 
 Nutzt du das Studio schon in Claude Code, reicht dort ein Satz: „Richte das Studio auch in Codex ein.“
 

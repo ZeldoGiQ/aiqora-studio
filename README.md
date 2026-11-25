@@ -21,7 +21,7 @@ AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in
 
 ## Installation in 3 Schritten
 
-**Einfachster Weg:** Öffne Claude Code, füge den Text aus [`install/start-prompt.md`](install/start-prompt.md) ein und drücke Enter. Claude erledigt den Rest.
+**Einfachster Weg:** Öffne Claude Code, Codex oder Antigravity, füge den Text aus [`install/start-prompt.md`](install/start-prompt.md) ein und drücke Enter. Das Programm erledigt den Rest. Es ist ein Text für alle drei.
 
 **Oder von Hand:**
 
@@ -80,7 +80,7 @@ Das Studio ist nicht an Claude gebunden.
 
 | Womit | So geht es | Anleitung |
 |---|---|---|
-| **OpenAI Codex** | Text aus [`install/start-prompt-andere.md`](install/start-prompt-andere.md) in Codex einfügen | [`docs/codex.md`](docs/codex.md) |
+| **OpenAI Codex** | Text aus [`install/start-prompt.md`](install/start-prompt.md) in Codex einfügen | [`docs/codex.md`](docs/codex.md) |
 | **Google Antigravity** | Denselben Text in Antigravity einfügen | [`docs/antigravity.md`](docs/antigravity.md) |
 | **Lokales Modell** (Ollama, LM Studio, llama.cpp) | In Claude Code `/aiqora-studio:lokal` tippen, dann den Knopf „AIQORA Studio (lokal)“ auf dem Desktop nutzen | [`docs/lokal.md`](docs/lokal.md) |
 
@@ -116,7 +116,7 @@ AIQORA Studio connects Claude Code to [AIQORA](https://aiqora.ai). Say what you 
 
 Generating costs AIQORA credits; the studio always tells you the cost first. Subscribers can bring their own provider keys (BYOK) for simple single generations. **BYOK keys never leave your computer** and are never sent to AIQORA. Full workflows (music video, Cinema Agent, Short Drama) always run on AIQORA.
 
-**Not Claude-only:** the studio also runs in OpenAI Codex ([`docs/codex.md`](docs/codex.md)) and Google Antigravity ([`docs/antigravity.md`](docs/antigravity.md)): paste [`install/start-prompt-andere.md`](install/start-prompt-andere.md) into either one. It also runs on local models via Ollama, LM Studio or llama.cpp ([`docs/lokal.md`](docs/lokal.md)); a local model only replaces the assistant, generation still runs on AIQORA and costs credits. You enter the AIQORA key once, in the studio's browser UI; no key is written into those programs' config files.
+**Not Claude-only:** the studio also runs in OpenAI Codex ([`docs/codex.md`](docs/codex.md)) and Google Antigravity ([`docs/antigravity.md`](docs/antigravity.md)): paste [`install/start-prompt.md`](install/start-prompt.md) into any of the three; it is one prompt for all. It also runs on local models via Ollama, LM Studio or llama.cpp ([`docs/lokal.md`](docs/lokal.md)); a local model only replaces the assistant, generation still runs on AIQORA and costs credits. You enter the AIQORA key once, in the studio's browser UI; no key is written into those programs' config files.
 
 **Add-ons:** after installing you can add third-party tools for graphics and sound (HyperFrames, Earshot) by saying "Zeig mir die Addons". They are not bundled; each is fetched from its original source after you accept its licence notes, which also say what is and is not cleared for commercial use. See [`docs/addons.md`](docs/addons.md).
 
