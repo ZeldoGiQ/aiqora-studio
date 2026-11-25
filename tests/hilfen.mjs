@@ -12,8 +12,9 @@ export function tempStudio() {
   return path.join(mkdtempSync(path.join(os.tmpdir(), "aiqora-test-")), "Studio");
 }
 
-export function starteHelfer(env = {}) {
-  const kind = spawn(process.execPath, [path.join(ROOT, "local", "server.mjs")], {
+/** skript: Datei in local/, die als MCP-Server gestartet wird (Standard: der lokale Helfer). */
+export function starteHelfer(env = {}, skript = "server.mjs", args = []) {
+  const kind = spawn(process.execPath, [path.join(ROOT, "local", skript), ...args], {
     env: { ...process.env, ...env },
     stdio: ["pipe", "pipe", "pipe"]
   });
@@ -24,6 +25,7 @@ export function starteHelfer(env = {}) {
   readline.createInterface({ input: kind.stdout }).on("line", (zeile) => {
     ausgaben.push(zeile);
     const m = JSON.parse(zeile);
+    if (m.id === undefined) return; // Mitteilung ohne Antwort
     if (offen.has(m.id)) { offen.get(m.id)(m); offen.delete(m.id); }
   });
   let naechsteId = 1;

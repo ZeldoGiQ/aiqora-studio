@@ -1,6 +1,6 @@
 {
   "name": "aiqora-studio",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "private": true,
   "description": "AIQORA Studio: Claude-Code-Plugin und lokaler Helfer",
   "type": "module",
@@ -8,6 +8,8 @@
   "scripts": {
     "test": "node --test",
     "start": "node local/oberflaeche.mjs",
-    "start:local": "node local/server.mjs"
+    "start:local": "node local/server.mjs",
+    "start:lokal": "node local/lokal.mjs",
+    "einrichten": "node local/einrichten.mjs"
   }
 }

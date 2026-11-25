@@ -6,6 +6,8 @@ import * as studio from "./studio.mjs";
 import * as dateien from "./dateien.mjs";
 import * as schnitt from "./schnitt.mjs";
 import * as byok from "./byok.mjs";
+import * as lokal from "./lokal.mjs";
+import * as programme from "./programme.mjs";
 
 const STARTER = path.join(PLUGIN_ROOT, "local", "oberflaeche.mjs");
 
@@ -34,7 +36,8 @@ export const WERKZEUGE = [
       eingerichtet: studio.istEingerichtet(),
       version: studio.version(),
       ffmpeg: await schnitt.ffmpegVerfuegbar(),
-      plattform: process.platform
+      plattform: process.platform,
+      programm_ordner: programme.programmOrdner()
     })
   },
   {
@@ -146,6 +149,41 @@ export const WERKZEUGE = [
       modelle: { type: "array", items: { type: "object" }, description: "Was AIQORA kann: { name, art, credits }" }
     }),
     run: async (a) => studio.dashboardAktualisieren(a)
+  },
+  {
+    name: "lokal_status",
+    description: "Zeigt, welche lokalen Modelle auf diesem Rechner bereitstehen (Ollama, LM Studio, llama.cpp), ob die Programme installiert sind und laufen. Für den Start des Studios ohne Claude-Abo.",
+    inputSchema: obj({}),
+    run: async () => {
+      const status = await lokal.erkennen();
+      return {
+        anbieter: await Promise.all(status.map(async (x) => ({
+          anbieter: x.anbieter, titel: lokal.ANBIETER[x.anbieter].titel, seite: lokal.ANBIETER[x.anbieter].seite,
+          installiert: x.laeuft || Boolean(await lokal.startProgramm(x.anbieter)), laeuft: x.laeuft, modelle: x.modelle.map((m) => m.name)
+        }))),
+        hinweis: "Gelistet sind nur Modelle, die Werkzeuge aufrufen können. Bilder, Videos und Musik kommen weiter von AIQORA und kosten Guthaben."
+      };
+    }
+  },
+  {
+    name: "lokal_knopf_anlegen",
+    description: "Legt auf dem Desktop den Knopf „AIQORA Studio (lokal)“ an. Er startet das Studio mit einem lokalen Modell statt mit Claude. Überschreibt keine fremde Datei.",
+    inputSchema: obj({}),
+    run: async () => programme.lokalKnopfAnlegen()
+  },
+  {
+    name: "programm_einrichten",
+    description: "Richtet das Studio in einem weiteren Programm ein: OpenAI Codex oder Google Antigravity. Trägt dort die Verbindungen zu AIQORA ein und installiert die Befehle des Studios als Skills. Eigene, gleichnamige Einträge des Nutzers bleiben stehen (Feld 'behalten'), außer mit ersetzen. Schreibt nie einen Schlüssel in eine Datei.",
+    inputSchema: obj({
+      programm: { type: "string", enum: ["codex", "antigravity"], description: "codex oder antigravity" },
+      ersetzen: { type: "boolean", description: "Auch eigene, gleichnamige Einträge des Nutzers ersetzen (vorher wird gesichert). Nur nach ausdrücklichem Ja des Nutzers." }
+    }, ["programm"]),
+    run: async ({ programm, ersetzen }) => ({
+      ...(programm === "codex"
+        ? programme.codexEinrichten({ ersetzen: ersetzen === true })
+        : programme.antigravityEinrichten({ ersetzen: ersetzen === true })),
+      knopf: programme.studioKnopfAnlegen()
+    })
   },
   {
     name: "byok_status",

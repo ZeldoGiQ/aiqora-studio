@@ -1,37 +1,40 @@
 # AIQORA Studio mit OpenAI Codex
 
-> **Stand:** Entwurf. Das Format der Codex-Einstellungen vor der Veröffentlichung gegen die aktuelle Codex-Dokumentation prüfen.
+Das Studio läuft auch in Codex: im Terminal, in der IDE-Erweiterung und in der App. Alle drei teilen sich dieselben Einstellungen.
 
-Das Studio funktioniert auch mit Codex. Statt der Plugin-Installation richtest du die Verbindungen einmal von Hand ein.
+## Einfachster Weg
 
-## 1. Repo herunterladen
+Öffne Codex, füge den Text aus [`install/start-prompt-andere.md`](../install/start-prompt-andere.md) ein und drücke Enter. Codex erledigt den Rest.
 
-Lade das Repo als ZIP herunter oder klone es, zum Beispiel nach `~/aiqora-studio`.
+Nutzt du das Studio schon in Claude Code, reicht dort ein Satz: „Richte das Studio auch in Codex ein.“
 
-## 2. Schlüssel als Umgebungsvariablen
+## Von Hand
 
-Trage die Schlüssel als **Umgebungsvariablen deines Systems** ein, nie in eine Datei:
+1. Studio herunterladen (einmalig):
+   ```
+   git clone https://github.com/ZeldoGiQ/aiqora-studio ~/aiqora-studio
+   ```
+2. Einrichten:
+   ```
+   node ~/aiqora-studio/local/einrichten.mjs codex
+   ```
+3. Codex ganz schließen und neu öffnen. Dann den Ordner `AIQORA-Studio` in deinem Dokumente-Ordner öffnen und schreiben: „Starte das AIQORA Studio.“
 
-| Variable | Wofür |
-|---|---|
-| `AIQORA_API_KEY` | Dein AIQORA-Schlüssel (aiqora.ai/settings → „MCP API Keys“) |
-| `AIQORA_BYOK_WAVESPEED`, `AIQORA_BYOK_FAL`, `AIQORA_BYOK_ELEVENLABS` | Optional, eigene Anbieter-Schlüssel (nur mit Abo) |
+## Was dabei passiert
 
-## 3. Verbindungen in `~/.codex/config.toml`
+- In `~/.codex/config.toml` kommen zwei Verbindungen dazu: `aiqora` (erzeugen) und `aiqora-local` (Ordner, Dateien, Schnitte auf deinem Rechner). Die alte Datei wird vorher als `config.toml.vor-aiqora-studio.bak` gesichert.
+- Die Befehle des Studios landen als Skills in `~/.agents/skills/` und heißen `aiqora-start`, `aiqora-musikvideo` und so weiter. Du rufst sie mit `$aiqora-start` auf oder sagst einfach, was du willst.
+- **In den Einstellungen von Codex steht kein Schlüssel.** Den AIQORA-Schlüssel trägst du einmal im Studio im Browser unter „Einstellungen“ ein (Knopf „AIQORA Studio“ auf dem Desktop oder `node ~/aiqora-studio/local/oberflaeche.mjs`). Er gilt dann für Claude Code, Codex und Antigravity.
+- Hast du in Codex schon eine eigene Verbindung namens `aiqora`, bleibt sie unverändert. Mit `--ersetzen` am Ende des Befehls nimmt das Studio stattdessen seine eigene.
 
-```toml
-[mcp_servers.aiqora]
-url = "https://sfqaotcueeifbrlttasu.supabase.co/functions/v1/mcp"
-bearer_token_env_var = "AIQORA_API_KEY"
+## Eigene Anbieter-Schlüssel (BYOK)
 
-[mcp_servers.aiqora-local]
-command = "node"
-args = ["/PFAD/ZU/aiqora-studio/local/server.mjs"]
-env_vars = ["AIQORA_BYOK_WAVESPEED", "AIQORA_BYOK_FAL", "AIQORA_BYOK_ELEVENLABS"]
+Optional und nur mit AIQORA-Abo. Trage sie als Umgebungsvariablen deines Systems ein, nie in eine Datei: `AIQORA_BYOK_WAVESPEED`, `AIQORA_BYOK_FAL`, `AIQORA_BYOK_ELEVENLABS`.
+
+## Aktualisieren
+
 ```
-
-`/PFAD/ZU/` durch den Ordner aus Schritt 1 ersetzen.
-
-## 4. Studio einrichten
-
-Starte Codex in einem leeren Ordner (z. B. `Dokumente/AIQORA-Studio`) und schreibe: „Richte das AIQORA Studio ein.“ Der lokale Helfer legt dann die Anleitung `AGENTS.md` an. Sie verweist auf die Befehle im Repo.
+cd ~/aiqora-studio
+git pull
+node local/einrichten.mjs codex
+```

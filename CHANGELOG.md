@@ -2,6 +2,14 @@
 
 Hier steht in einfachen Worten, was sich in jeder Version geändert hat.
 
+## 0.3.0
+
+- **Neu: Das Studio läuft auch ohne Claude.** Es lässt sich in **OpenAI Codex** und **Google Antigravity** einrichten. In Claude Code reicht dafür ein Satz („Richte das Studio auch in Codex ein“) oder `/aiqora-studio:programme`. Für Nutzer ohne Claude Code gibt es einen eigenen Start-Text (`install/start-prompt-andere.md`).
+- **Neu: Lokale Modelle.** Mit Ollama, LM Studio oder llama.cpp läuft der Assistent auf deinem eigenen Rechner. `/aiqora-studio:lokal` legt dafür den Desktop-Knopf „AIQORA Studio (lokal)“ an. Bilder, Videos und Musik kommen weiter von AIQORA und kosten Guthaben.
+- Mit einem lokalen Modell fragt das Studio vor jedem Auftrag nach, der Guthaben kosten oder etwas löschen kann. Kleine Modelle halten sich schlechter an Regeln; diese Frage hängt deshalb nicht vom Modell ab.
+- Den AIQORA-Schlüssel trägst du weiter nur einmal ein, im Studio im Browser. Er gilt für alle Programme. In den Einstellungen von Codex und Antigravity steht kein Schlüssel.
+- Eigene Einstellungen in Codex und Antigravity bleiben unangetastet: Das Studio ersetzt dort nichts, was es nicht selbst angelegt hat, und sichert die Datei vor jeder Änderung.
+
 ## 0.2.2
 
 - Behoben: Ein im Studio eingetragener AIQORA-Schlüssel ging verloren, wenn das Studio einmal aus Claude heraus und später über den Desktop-Knopf gestartet wurde. Er wurde dann abgelehnt. Das Studio speichert seine Daten jetzt an einem Ort, den Windows nicht umleitet, und übernimmt einen schon eingetragenen Schlüssel automatisch.
