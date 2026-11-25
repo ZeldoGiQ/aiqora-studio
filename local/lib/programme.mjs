@@ -112,13 +112,15 @@ export function tomlAbschnitt(zeilen, name) {
 }
 
 function tomlEintrag(name, v) {
+  const env = Object.entries(v.env || {});
   return [
     `[mcp_servers.${name}]`,
     `# ${EINTRAG_MARKE}`,
     `command = ${tomlText(v.command)}`,
     `args = [${v.args.map(tomlText).join(", ")}]`,
     "startup_timeout_sec = 30",
-    "tool_timeout_sec = 600"
+    "tool_timeout_sec = 600",
+    ...(env.length ? ["", `[mcp_servers.${name}.env]`, ...env.map(([k, w]) => `${k} = ${tomlText(w)}`)] : [])
   ];
 }
 
@@ -150,13 +152,13 @@ export function codexOrdner(home = os.homedir()) {
   return umgebung("CODEX_HOME") ? path.resolve(umgebung("CODEX_HOME")) : path.join(home, ".codex");
 }
 
-/** Codex einrichten: Verbindungen in ~/.codex/config.toml, Skills nach ~/.agents/skills. */
-export function codexEinrichten({ home = os.homedir(), ersetzen = false, wurzel } = {}) {
+/** Codex einrichten: Verbindungen in ~/.codex/config.toml, Skills nach ~/.agents/skills. zusatz: Verbindungen von Addons. */
+export function codexEinrichten({ home = os.homedir(), ersetzen = false, wurzel, zusatz = {} } = {}) {
   const ordner = codexOrdner(home);
   const datei = path.join(ordner, "config.toml");
   mkdirSync(ordner, { recursive: true });
   const vorher = existsSync(datei) ? readFileSync(datei, "utf8") : "";
-  const r = codexTomlAnpassen(vorher, verbindungen(wurzel ?? programmOrdner(home)), ersetzen);
+  const r = codexTomlAnpassen(vorher, { ...verbindungen(wurzel ?? programmOrdner(home)), ...zusatz }, ersetzen);
   if (r.text !== vorher) { sichern(datei); writeFileSync(datei, r.text, "utf8"); }
   const skills = skillsInstallieren(path.join(home, ".agents", "skills"));
   return { programm: "codex", einstellungen: datei, eingetragen: r.eingetragen, behalten: r.behalten, skills };
@@ -173,7 +175,7 @@ export function antigravityJsonAnpassen(text, verb, ersetzen = false) {
   for (const [name, v] of Object.entries(verb)) {
     const alt = daten.mcpServers[name];
     if (alt && !ersetzen && !istUnsere(JSON.stringify(alt))) { behalten.push(name); continue; }
-    daten.mcpServers[name] = { command: v.command, args: v.args, timeoutSeconds: 600 };
+    daten.mcpServers[name] = { command: v.command, args: v.args, ...(v.env ? { env: v.env } : {}), timeoutSeconds: 600 };
     eingetragen.push(name);
   }
   return { text: JSON.stringify(daten, null, 2) + "\n", eingetragen, behalten };
@@ -184,7 +186,7 @@ export function antigravityJsonAnpassen(text, verb, ersetzen = false) {
  * Skills nach ~/.gemini/config/skills. Ältere Versionen lesen eine eigene mcp_config.json; gibt es die als
  * echte Datei (kein Verweis auf die gemeinsame), wird sie mit angepasst.
  */
-export function antigravityEinrichten({ home = os.homedir(), ersetzen = false, wurzel } = {}) {
+export function antigravityEinrichten({ home = os.homedir(), ersetzen = false, wurzel, zusatz = {} } = {}) {
   const gemini = path.join(home, ".gemini");
   const haupt = path.join(gemini, "config", "mcp_config.json");
   mkdirSync(path.dirname(haupt), { recursive: true });
@@ -193,7 +195,7 @@ export function antigravityEinrichten({ home = os.homedir(), ersetzen = false, w
   for (const alt of ["antigravity", "antigravity-ide"].map((o) => path.join(gemini, o, "mcp_config.json"))) {
     try { if (existsSync(alt) && realpathSync(alt) !== realpathSync(haupt)) dateien.push(alt); } catch { /* nicht lesbar */ }
   }
-  const verb = verbindungen(wurzel ?? programmOrdner(home));
+  const verb = { ...verbindungen(wurzel ?? programmOrdner(home)), ...zusatz };
   let eingetragen = [], behalten = [];
   for (const datei of dateien) {
     const vorher = readFileSync(datei, "utf8");
@@ -203,6 +205,28 @@ export function antigravityEinrichten({ home = os.homedir(), ersetzen = false, w
   }
   const skills = skillsInstallieren(path.join(gemini, "config", "skills"));
   return { programm: "antigravity", einstellungen: haupt, weitere: dateien.slice(1), eingetragen, behalten, skills };
+}
+
+/**
+ * Trägt zusätzliche Verbindungen (von Addons) in Codex und Antigravity ein, aber nur dort, wo das Studio schon
+ * eingerichtet ist. Liefert die Namen der Programme, in denen etwas dazukam.
+ */
+export function zusatzEintragen(zusatz, { home = os.homedir() } = {}) {
+  const geaendert = [];
+  const ziele = [
+    ["codex", path.join(codexOrdner(home), "config.toml"), codexTomlAnpassen],
+    ["antigravity", path.join(home, ".gemini", "config", "mcp_config.json"), antigravityJsonAnpassen]
+  ];
+  for (const [programm, datei, anpassen] of ziele) {
+    try {
+      if (!existsSync(datei)) continue;
+      const vorher = readFileSync(datei, "utf8");
+      if (!/local[\\/]+server\.mjs/.test(vorher)) continue; // Studio dort nicht eingerichtet
+      const r = anpassen(vorher, zusatz);
+      if (r.text !== vorher) { sichern(datei); writeFileSync(datei, r.text, "utf8"); geaendert.push(programm); }
+    } catch { /* dieses Programm überspringen */ }
+  }
+  return geaendert;
 }
 
 // ---------- Was ist installiert? ----------

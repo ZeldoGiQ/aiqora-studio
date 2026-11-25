@@ -52,6 +52,7 @@ AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in
 | `/aiqora-studio:figur` | Deine Figuren ansehen, anlegen, neu einkleiden |
 | `/aiqora-studio:status` | Guthaben und laufende Aufträge |
 | `/aiqora-studio:schluessel` | Eigene Anbieter-Schlüssel (BYOK) prüfen |
+| `/aiqora-studio:addons` | Grafik und Soundeffekte dazuholen (HyperFrames, Earshot) |
 | `/aiqora-studio:lokal` | Studio mit einem lokalen Modell nutzen |
 | `/aiqora-studio:programme` | Studio auch in Codex oder Antigravity einrichten |
 | `/aiqora-studio:update` | Auf die neueste Version bringen |
@@ -68,6 +69,10 @@ Erzeugen kostet AIQORA-Credits. Das Studio nennt die Kosten **vor** jedem Auftra
 Mit einem AIQORA-Abo kannst du für einfache Einzelbilder und -clips auch deine eigenen Schlüssel von Drittanbietern nutzen. **Deine Schlüssel bleiben auf deinem Rechner.** Claude Code speichert sie im sicheren Speicher deines Systems, AIQORA bekommt sie nie zu sehen, und Aufträge mit eigenem Schlüssel laufen direkt von deinem Rechner zum Anbieter. Die Kosten beim Anbieter trägst du selbst.
 
 Fertige Abläufe wie Musikvideo, Cinema Agent und Short Drama laufen immer über AIQORA und kosten Credits.
+
+## Addons: Grafik und Soundeffekte
+
+Nach der Installation kannst du Zusatzprogramme anderer Anbieter dazuholen: **HyperFrames** für Erklärgrafiken, Titel und Untertitel, **Earshot** für Soundeffekte und Tonprüfung. Sie sind nicht von Anfang an dabei. Sag im Studio „Zeig mir die Addons“: Du siehst vor jeder Installation die Lizenzhinweise, auch dazu, was du kommerziell nutzen darfst und was nicht. Alles Weitere steht in [`docs/addons.md`](docs/addons.md).
 
 ## Andere Programme und lokale Modelle
 
@@ -112,5 +117,7 @@ AIQORA Studio connects Claude Code to [AIQORA](https://aiqora.ai). Say what you 
 Generating costs AIQORA credits; the studio always tells you the cost first. Subscribers can bring their own provider keys (BYOK) for simple single generations. **BYOK keys never leave your computer** and are never sent to AIQORA. Full workflows (music video, Cinema Agent, Short Drama) always run on AIQORA.
 
 **Not Claude-only:** the studio also runs in OpenAI Codex ([`docs/codex.md`](docs/codex.md)) and Google Antigravity ([`docs/antigravity.md`](docs/antigravity.md)): paste [`install/start-prompt-andere.md`](install/start-prompt-andere.md) into either one. It also runs on local models via Ollama, LM Studio or llama.cpp ([`docs/lokal.md`](docs/lokal.md)); a local model only replaces the assistant, generation still runs on AIQORA and costs credits. You enter the AIQORA key once, in the studio's browser UI; no key is written into those programs' config files.
+
+**Add-ons:** after installing you can add third-party tools for graphics and sound (HyperFrames, Earshot) by saying "Zeig mir die Addons". They are not bundled; each is fetched from its original source after you accept its licence notes, which also say what is and is not cleared for commercial use. See [`docs/addons.md`](docs/addons.md).
 
 Security: see [`SECURITY.md`](SECURITY.md).

@@ -6,6 +6,7 @@
 //   node local/einrichten.mjs status        zeigen, welche Programme gefunden wurden
 // Mit --ersetzen werden auch eigene, gleichnamige Einträge des Nutzers überschrieben (vorher wird gesichert).
 // Die Ausgabe ist JSON. Sie enthält nie einen Schlüssel.
+import * as addons from "./lib/addons.mjs";
 import { erkennen } from "./lib/lokal.mjs";
 import { Fehler } from "./lib/pfade.mjs";
 import * as programme from "./lib/programme.mjs";
@@ -18,7 +19,8 @@ async function ausfuehren() {
   switch (ziel) {
     case "codex":
     case "antigravity": {
-      const ergebnis = ziel === "codex" ? programme.codexEinrichten({ ersetzen }) : programme.antigravityEinrichten({ ersetzen });
+      const angaben = { ersetzen, zusatz: await addons.verbindungen() };
+      const ergebnis = ziel === "codex" ? programme.codexEinrichten(angaben) : programme.antigravityEinrichten(angaben);
       return { ...ergebnis, studio_ordner: studio.einrichten().studio_ordner, knopf: programme.studioKnopfAnlegen() };
     }
     case "lokal":
