@@ -33,7 +33,13 @@ export function ergebnisLesen(result) {
   try { return JSON.parse(text); } catch { return { text }; }
 }
 
-export function erstelleClient(schluesselHolen) {
+/**
+ * schluesselHolen: liefert den Schlüssel oder "". optionen.name: wie sich der Client beim Server meldet,
+ * optionen.zeitlimitMs: wie lange eine Antwort dauern darf.
+ */
+export function erstelleClient(schluesselHolen, optionen = {}) {
+  const clientName = optionen.name || "aiqora-studio-oberflaeche";
+  const zeitlimitMs = optionen.zeitlimitMs || 90000;
   let sitzung = null;
   let naechsteId = 1;
 
@@ -49,7 +55,7 @@ export function erstelleClient(schluesselHolen) {
           ...(sitzung ? { "Mcp-Session-Id": sitzung } : {})
         },
         body: JSON.stringify(nachricht),
-        signal: AbortSignal.timeout(90000)
+        signal: AbortSignal.timeout(zeitlimitMs)
       });
     } catch {
       throw new Fehler("AIQORA ist gerade nicht erreichbar. Bitte prüfe deine Internetverbindung.");
@@ -70,7 +76,7 @@ export function erstelleClient(schluesselHolen) {
     sitzung = null;
     const r = await senden({
       jsonrpc: "2.0", id: naechsteId++, method: "initialize",
-      params: { protocolVersion: PROTOKOLL, capabilities: {}, clientInfo: { name: "aiqora-studio-oberflaeche", version: version() } }
+      params: { protocolVersion: PROTOKOLL, capabilities: {}, clientInfo: { name: clientName, version: version() } }
     }, schluessel);
     if (r.error) throw new Fehler("Die Verbindung zu AIQORA konnte nicht aufgebaut werden.");
     await senden({ jsonrpc: "2.0", method: "notifications/initialized" }, schluessel);
@@ -79,8 +85,11 @@ export function erstelleClient(schluesselHolen) {
   let verbunden = null; // Promise der laufenden Verbindung
   let verbundenMit = "";
 
-  /** Ruft ein AIQORA-Werkzeug auf und liefert das Ergebnis als Objekt. */
-  async function aufrufen(name, args = {}, versuch = 0) {
+  /**
+   * Reicht eine MCP-Anfrage unverändert an AIQORA durch und liefert die JSON-RPC-Antwort ({ result } oder { error }).
+   * Baut die Verbindung bei Bedarf auf und nach abgelaufener Sitzung einmal neu.
+   */
+  async function weiterleiten(method, params, versuch = 0) {
     const schluessel = await schluesselHolen();
     if (!schluessel) throw new SchluesselFehler("Es ist noch kein AIQORA-Schlüssel eingetragen.");
     if (!verbunden || verbundenMit !== schluessel) {
@@ -88,13 +97,17 @@ export function erstelleClient(schluesselHolen) {
       verbunden = verbinden(schluessel).catch((e) => { verbunden = null; throw e; });
     }
     await verbunden;
-    let r;
     try {
-      r = await senden({ jsonrpc: "2.0", id: naechsteId++, method: "tools/call", params: { name, arguments: args } }, schluessel);
+      return await senden({ jsonrpc: "2.0", id: naechsteId++, method, params }, schluessel);
     } catch (e) {
-      if (e.sitzungWeg && versuch === 0) { verbunden = null; return aufrufen(name, args, 1); }
+      if (e.sitzungWeg && versuch === 0) { verbunden = null; return weiterleiten(method, params, 1); }
       throw e;
     }
+  }
+
+  /** Ruft ein AIQORA-Werkzeug auf und liefert das Ergebnis als Objekt. */
+  async function aufrufen(name, args = {}) {
+    const r = await weiterleiten("tools/call", { name, arguments: args });
     if (r.error) throw new Fehler(String(r.error.message || "Unbekannter Fehler bei AIQORA.").slice(0, 300));
     const daten = ergebnisLesen(r.result);
     if (r.result?.isError) {
@@ -111,5 +124,5 @@ export function erstelleClient(schluesselHolen) {
     return true;
   }
 
-  return { aufrufen, schluesselPruefen, zuruecksetzen: () => { verbunden = null; sitzung = null; } };
+  return { aufrufen, weiterleiten, schluesselPruefen, zuruecksetzen: () => { verbunden = null; sitzung = null; } };
 }

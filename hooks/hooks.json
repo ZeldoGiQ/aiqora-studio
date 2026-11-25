@@ -1,0 +1,17 @@
+{
+  "description": "Feste Kostenfrage, wenn das Studio mit einem lokalen Modell läuft.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__.*aiqora.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/local/kostenfrage.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

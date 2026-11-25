@@ -2,6 +2,8 @@
 
 **Dein fertiges KI-Studio für Bilder, Videos, Musik und Musikvideos, direkt in Claude Code. Ohne Programmieren.**
 
+Läuft auch in **OpenAI Codex** und **Google Antigravity** und mit **lokalen Modellen** (Ollama, LM Studio, llama.cpp).
+
 *[English version below](#english)*
 
 AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in normaler Sprache, was du willst („Mach mir ein Musikvideo zu meinem Song“), das Studio kümmert sich um den Rest: Kosten vorher ansagen, erzeugen lassen, herunterladen, öffnen.
@@ -13,7 +15,7 @@ AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in
 
 ## Was du brauchst
 
-1. [Claude Code](https://claude.com/claude-code) (Desktop-App oder Terminal)
+1. [Claude Code](https://claude.com/claude-code) (Desktop-App oder Terminal). Oder Codex oder Antigravity, siehe [Andere Programme](#andere-programme-und-lokale-modelle).
 2. Ein [AIQORA-Konto](https://aiqora.ai) mit Guthaben
 3. Optional: [ffmpeg](https://ffmpeg.org) für einfache Schnitte auf deinem Rechner
 
@@ -50,6 +52,8 @@ AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in
 | `/aiqora-studio:figur` | Deine Figuren ansehen, anlegen, neu einkleiden |
 | `/aiqora-studio:status` | Guthaben und laufende Aufträge |
 | `/aiqora-studio:schluessel` | Eigene Anbieter-Schlüssel (BYOK) prüfen |
+| `/aiqora-studio:lokal` | Studio mit einem lokalen Modell nutzen |
+| `/aiqora-studio:programme` | Studio auch in Codex oder Antigravity einrichten |
 | `/aiqora-studio:update` | Auf die neueste Version bringen |
 | `/aiqora-studio:hilfe` | Hilfe |
 
@@ -65,9 +69,21 @@ Mit einem AIQORA-Abo kannst du für einfache Einzelbilder und -clips auch deine 
 
 Fertige Abläufe wie Musikvideo, Cinema Agent und Short Drama laufen immer über AIQORA und kosten Credits.
 
-## Codex
+## Andere Programme und lokale Modelle
 
-Das Studio funktioniert auch mit OpenAI Codex. Siehe [`docs/codex.md`](docs/codex.md).
+Das Studio ist nicht an Claude gebunden.
+
+| Womit | So geht es | Anleitung |
+|---|---|---|
+| **OpenAI Codex** | Text aus [`install/start-prompt-andere.md`](install/start-prompt-andere.md) in Codex einfügen | [`docs/codex.md`](docs/codex.md) |
+| **Google Antigravity** | Denselben Text in Antigravity einfügen | [`docs/antigravity.md`](docs/antigravity.md) |
+| **Lokales Modell** (Ollama, LM Studio, llama.cpp) | In Claude Code `/aiqora-studio:lokal` tippen, dann den Knopf „AIQORA Studio (lokal)“ auf dem Desktop nutzen | [`docs/lokal.md`](docs/lokal.md) |
+
+Nutzt du das Studio schon in Claude Code, reicht dort ein Satz: „Richte das Studio auch in Codex ein.“
+
+Den AIQORA-Schlüssel trägst du in jedem Fall nur einmal ein, im Studio im Browser unter „Einstellungen“. In den Einstellungen der anderen Programme steht kein Schlüssel.
+
+Ein lokales Modell ersetzt nur den Assistenten. Bilder, Videos und Musik kommen weiter von AIQORA und kosten Guthaben.
 
 ## Sicherheit und Datenschutz
 
@@ -95,4 +111,6 @@ AIQORA Studio connects Claude Code to [AIQORA](https://aiqora.ai). Say what you 
 
 Generating costs AIQORA credits; the studio always tells you the cost first. Subscribers can bring their own provider keys (BYOK) for simple single generations. **BYOK keys never leave your computer** and are never sent to AIQORA. Full workflows (music video, Cinema Agent, Short Drama) always run on AIQORA.
 
-Codex: see [`docs/codex.md`](docs/codex.md). Security: see [`SECURITY.md`](SECURITY.md).
+**Not Claude-only:** the studio also runs in OpenAI Codex ([`docs/codex.md`](docs/codex.md)) and Google Antigravity ([`docs/antigravity.md`](docs/antigravity.md)): paste [`install/start-prompt-andere.md`](install/start-prompt-andere.md) into either one. It also runs on local models via Ollama, LM Studio or llama.cpp ([`docs/lokal.md`](docs/lokal.md)); a local model only replaces the assistant, generation still runs on AIQORA and costs credits. You enter the AIQORA key once, in the studio's browser UI; no key is written into those programs' config files.
+
+Security: see [`SECURITY.md`](SECURITY.md).
