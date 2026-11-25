@@ -2,6 +2,12 @@
 
 Hier steht in einfachen Worten, was sich in jeder Version geändert hat.
 
+## 0.4.0
+
+- **Neu: Addons.** Nach der Installation kannst du Zusatzprogramme für Grafik und Ton dazuholen: **HyperFrames** (Erklärgrafiken, Titel, Untertitel) und **Earshot** (Soundeffekte, Tonprüfung). Sag „Zeig mir die Addons“ oder tippe `/aiqora-studio:addons`. Die normale Installation bleibt, wie sie war.
+- Vor jeder Installation zeigt das Studio die Lizenzhinweise, auch dazu, was du kommerziell nutzen darfst und was nicht. Ohne dein Ja wird nichts installiert.
+- Addons liegen nicht im Studio, sondern werden von ihrer Originalquelle geladen. Ihre Regeln und Lizenzhinweise stehen danach in `addons.md` im Studio-Ordner, und der Assistent hält sich daran, zum Beispiel: Musik kommt immer von AIQORA, weil die lokale Musik-Notlösung von HyperFrames nicht kommerziell nutzbar ist.
+
 ## 0.3.0
 
 - **Neu: Das Studio läuft auch ohne Claude.** Es lässt sich in **OpenAI Codex** und **Google Antigravity** einrichten. In Claude Code reicht dafür ein Satz („Richte das Studio auch in Codex ein“) oder `/aiqora-studio:programme`. Für Nutzer ohne Claude Code gibt es einen eigenen Start-Text (`install/start-prompt-andere.md`).

@@ -1,15 +1,34 @@
 // Die Werkzeuge des lokalen Helfers: Name, Beschreibung, Eingabe-Schema, Ausführung.
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import path from "node:path";
 import { Fehler, PLUGIN_ROOT, studioOrdner } from "./pfade.mjs";
 import * as studio from "./studio.mjs";
 import * as dateien from "./dateien.mjs";
 import * as schnitt from "./schnitt.mjs";
 import * as byok from "./byok.mjs";
+import * as addons from "./addons.mjs";
 import * as lokal from "./lokal.mjs";
 import * as programme from "./programme.mjs";
 
 const STARTER = path.join(PLUGIN_ROOT, "local", "oberflaeche.mjs");
+
+/** Startet die Installation eines Addons im Hintergrund. Sie kann viele Minuten dauern; den Stand zeigt addons_liste. */
+function addonInstallieren({ name, lizenz_bestaetigt }) {
+  const a = addons.ADDONS[name];
+  if (lizenz_bestaetigt !== true) {
+    return {
+      gestartet: false, lizenzhinweise: a.lizenzhinweise, quelle: a.quelle, lizenz: a.lizenz, groesse: a.groesse,
+      hinweis: "Noch nichts installiert. Zeig dem Nutzer zuerst diese Lizenzhinweise und die Größe. Erst nach seinem ausdrücklichen Ja noch einmal mit lizenz_bestaetigt: true aufrufen."
+    };
+  }
+  if (addons.standLesen(name)?.stand === "laeuft") {
+    return { gestartet: false, hinweis: "Die Installation läuft schon. addons_liste zeigt den Stand." };
+  }
+  const kind = spawn(process.execPath, [path.join(PLUGIN_ROOT, "local", "addon.mjs"), name, "--ja"],
+    { detached: true, stdio: "ignore", windowsHide: true, env: process.env });
+  kind.unref();
+  return { gestartet: true, hinweis: `Die Installation von ${a.titel} läuft im Hintergrund (${a.groesse}). addons_liste zeigt den Stand; frühestens nach einer Minute nachsehen.` };
+}
 
 function oberflaecheOeffnen() {
   return new Promise((resolve, reject) => {
@@ -178,12 +197,28 @@ export const WERKZEUGE = [
       programm: { type: "string", enum: ["codex", "antigravity"], description: "codex oder antigravity" },
       ersetzen: { type: "boolean", description: "Auch eigene, gleichnamige Einträge des Nutzers ersetzen (vorher wird gesichert). Nur nach ausdrücklichem Ja des Nutzers." }
     }, ["programm"]),
-    run: async ({ programm, ersetzen }) => ({
-      ...(programm === "codex"
-        ? programme.codexEinrichten({ ersetzen: ersetzen === true })
-        : programme.antigravityEinrichten({ ersetzen: ersetzen === true })),
-      knopf: programme.studioKnopfAnlegen()
-    })
+    run: async ({ programm, ersetzen }) => {
+      const angaben = { ersetzen: ersetzen === true, zusatz: await addons.verbindungen() };
+      return {
+        ...(programm === "codex" ? programme.codexEinrichten(angaben) : programme.antigravityEinrichten(angaben)),
+        knopf: programme.studioKnopfAnlegen()
+      };
+    }
+  },
+  {
+    name: "addons_liste",
+    description: "Zeigt die Addons des Studios (Zusatzprogramme für Grafik und Ton, die nicht zum Studio gehören): wofür, Größe, Lizenz, Lizenzhinweise, ob installiert und den Stand einer laufenden Installation.",
+    inputSchema: obj({}),
+    run: async () => addons.liste()
+  },
+  {
+    name: "addon_installieren",
+    description: "Installiert ein Addon von seiner Originalquelle. Ohne lizenz_bestaetigt liefert es nur die Lizenzhinweise. Erst nach dem ausdrücklichen Ja des Nutzers zu diesen Hinweisen mit lizenz_bestaetigt: true aufrufen. Läuft im Hintergrund.",
+    inputSchema: obj({
+      name: { type: "string", enum: Object.keys(addons.ADDONS), description: "Name aus addons_liste" },
+      lizenz_bestaetigt: { type: "boolean", description: "true nur, wenn der Nutzer die Lizenzhinweise gesehen und ausdrücklich zugestimmt hat" }
+    }, ["name"]),
+    run: async (a) => addonInstallieren(a)
   },
   {
     name: "byok_status",
