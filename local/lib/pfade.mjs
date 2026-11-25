@@ -1,6 +1,6 @@
 // Pfade des Studios und sichere Pfadprüfung.
 import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -40,14 +40,35 @@ export function dokumenteOrdner() {
 /**
  * Ordner für interne Daten der App (Sitzungsdatei, gespeicherter Schlüssel).
  * Bewusst nicht im Studio-Ordner, weil der oft mit OneDrive oder iCloud synchronisiert wird.
+ * Windows: bewusst nicht unter AppData. Startet die Claude-App (ein MSIX-Paket) das Studio, leitet Windows
+ * dessen Schreibzugriffe auf AppData in einen versteckten Paketordner um. Ein über den Desktop-Knopf
+ * gestartetes Studio sähe den dort gespeicherten Schlüssel dann nicht. Der Benutzerordner wird nicht umgeleitet.
  */
 export function appDatenOrdner() {
   const eigen = umgebung("AIQORA_APP_DATEN");
   if (eigen) return path.resolve(eigen);
   const home = os.homedir();
-  if (process.platform === "win32") return path.join(process.env.LOCALAPPDATA || path.join(home, "AppData", "Local"), "AIQORA-Studio");
+  if (process.platform === "win32") return path.join(home, ".aiqora-studio");
   if (process.platform === "darwin") return path.join(home, "Library", "Application Support", "AIQORA-Studio");
   return path.join(process.env.XDG_STATE_HOME || path.join(home, ".local", "state"), "aiqora-studio");
+}
+
+/**
+ * Frühere Speicherorte der App-Daten (bis 0.2.1, nur Windows): AppData\Local\AIQORA-Studio und dessen
+ * umgeleitete Kopie im Paketordner der Claude-App. Daraus wird ein gespeicherter Schlüssel übernommen.
+ */
+export function alteAppDatenOrdner() {
+  const eigen = umgebung("AIQORA_ALTE_APP_DATEN");
+  if (eigen) return eigen.split(path.delimiter).filter(Boolean).map((p) => path.resolve(p));
+  if (process.platform !== "win32" || umgebung("AIQORA_APP_DATEN")) return [];
+  const lokal = process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local");
+  const ordner = [path.join(lokal, "AIQORA-Studio")];
+  try {
+    for (const paket of readdirSync(path.join(lokal, "Packages"))) {
+      if (/^Claude/i.test(paket)) ordner.push(path.join(lokal, "Packages", paket, "LocalCache", "Local", "AIQORA-Studio"));
+    }
+  } catch { /* kein Paketordner */ }
+  return ordner;
 }
 
 export function studioOrdner() {
