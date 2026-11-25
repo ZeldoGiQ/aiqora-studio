@@ -4,7 +4,7 @@ Das Studio läuft auch in Antigravity: in der App, in der IDE und im Terminal (`
 
 ## Einfachster Weg
 
-Öffne Antigravity, füge den Text aus [`install/start-prompt-andere.md`](../install/start-prompt-andere.md) ein und drücke Enter. Antigravity erledigt den Rest.
+Öffne Antigravity, füge den Text aus [`install/start-prompt.md`](../install/start-prompt.md) ein und drücke Enter. Antigravity erledigt den Rest.
 
 Nutzt du das Studio schon in Claude Code, reicht dort ein Satz: „Richte das Studio auch in Antigravity ein.“
 
