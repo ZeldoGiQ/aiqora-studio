@@ -13,6 +13,7 @@ import { appDatenOrdner, umgebung } from "./lib/pfade.mjs";
 import { erstelleClient } from "./lib/aiqora.mjs";
 import { erstelleServer } from "./lib/oberflaeche.mjs";
 import * as schluessel from "./lib/schluessel.mjs";
+import { version } from "./lib/studio.mjs";
 
 const STANDARD_PORT = 4471;
 const LEERLAUF_MS = 4 * 60 * 60 * 1000; // nach 4 Stunden ohne Zugriff beendet sich der Server
@@ -23,14 +24,33 @@ function sitzungLesen() {
   try { return JSON.parse(readFileSync(sitzungsDatei(), "utf8")); } catch { return null; }
 }
 
-async function laeuft(s) {
-  if (!s?.port) return false;
+/** Antwort der laufenden Oberfläche auf dem Port der Sitzung ({ app, version }), oder null, wenn dort nichts läuft. */
+async function ping(s) {
+  if (!s?.port) return null;
   try {
     const r = await fetch(`http://127.0.0.1:${s.port}/api/ping`, { signal: AbortSignal.timeout(1500) });
-    return r.ok && (await r.json()).app === "aiqora-studio";
+    const daten = r.ok ? await r.json() : null;
+    return daten?.app === "aiqora-studio" ? daten : null;
   } catch {
-    return false;
+    return null;
   }
+}
+
+const laeuft = async (s) => Boolean(await ping(s));
+
+/**
+ * Beendet eine Oberfläche, die noch mit einer anderen Version läuft, zum Beispiel nach einem Update.
+ * Die Seiten kämen sonst schon aus der neuen Version, der Server dahinter wäre aber noch der alte:
+ * Neue Seiten zeigten dann nur einen Fehler. Beendet wird nur, was auf dem Port der Sitzung wirklich
+ * als Studio antwortet.
+ */
+async function veralteteBeenden(s) {
+  const antwort = await ping(s);
+  if (!antwort || antwort.version === version() || !Number.isInteger(s.pid)) return false;
+  try { process.kill(s.pid); } catch { return false; }
+  for (let i = 0; i < 25 && (await laeuft(s)); i++) await new Promise((r) => setTimeout(r, 200));
+  try { unlinkSync(sitzungsDatei()); } catch { /* schon weg */ }
+  return true;
 }
 
 function browserOeffnen(url) {
@@ -82,6 +102,7 @@ async function dienst() {
 
 async function starter() {
   let s = sitzungLesen();
+  await veralteteBeenden(s);
   if (!(await laeuft(s))) {
     const kind = spawn(process.execPath, [fileURLToPath(import.meta.url), "--dienst"], {
       detached: true, stdio: "ignore", windowsHide: true, env: process.env

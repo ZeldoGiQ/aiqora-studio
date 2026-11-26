@@ -2,6 +2,10 @@
 
 Hier steht in einfachen Worten, was sich in jeder Version geändert hat.
 
+## 0.5.1
+
+- Behoben: War das Studio bei einem Update gerade geöffnet, lief es mit dem alten Stand weiter, und neue Seiten wie „Modelle“ zeigten nur einen Fehler. Jetzt startet es sich beim nächsten Öffnen über den Desktop-Knopf selbst neu. Ein noch offenes altes Fenster sagt dir, dass du das Studio neu öffnen sollst.
+
 ## 0.5.0
 
 - **Neu: Modellübersicht.** Die Seite „Modelle“ im Studio zeigt alle Modelle von AIQORA: Video, Bild, Musik, Stimme und Lippensynchron, mit Fähigkeiten, Preisen und Preistabellen. Du siehst auch, wie oft dein Guthaben für ein Modell reicht. Die Preise kommen direkt von AIQORA und sind höchstens zehn Minuten alt.
