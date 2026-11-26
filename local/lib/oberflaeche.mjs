@@ -251,8 +251,9 @@ export function erstelleServer({ token, aiqora, beimZugriff = () => {} }) {
     const url = new URL(req.url, `http://${host}`);
     const cookieName = `aiqora_studio_${port}`;
 
-    // Ping ohne Sitzung: verrät nur, dass hier das Studio läuft.
-    if (url.pathname === "/api/ping") { json(res, 200, { app: "aiqora-studio" }); return; }
+    // Ping ohne Sitzung: verrät nur, dass hier das Studio läuft und in welcher Version.
+    // Der Starter erkennt daran eine Oberfläche, die nach einem Update noch mit altem Stand läuft.
+    if (url.pathname === "/api/ping") { json(res, 200, { app: "aiqora-studio", version: version() }); return; }
     if ((req.method === "GET" || req.method === "HEAD") && OEFFENTLICH.has(url.pathname)) {
       const [datei, typ] = STATISCH[url.pathname];
       senden(res, 200, readFileSync(path.join(WEB_ORDNER, datei)), { "Content-Type": typ, "Cache-Control": "public, max-age=86400" });

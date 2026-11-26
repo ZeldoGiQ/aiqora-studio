@@ -34,6 +34,10 @@ async function api(pfad, optionen = {}) {
   const r = await fetch(pfad, init);
   let daten = {};
   try { daten = await r.json(); } catch { /* leer */ }
+  // Kennt der Server eine Adresse der Seite nicht, läuft er noch mit einem älteren Stand (nach einem Update).
+  if (r.status === 404 && pfad.startsWith("/api/")) {
+    throw new Error("Das Studio wurde aktualisiert. Bitte schließ dieses Fenster und öffne das Studio neu über den Knopf „AIQORA Studio“ auf dem Desktop.");
+  }
   if (!r.ok) throw Object.assign(new Error(daten.fehler || "Etwas ist schiefgelaufen."), { schluessel: daten.schluessel, status: r.status });
   return daten;
 }
