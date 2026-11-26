@@ -19,6 +19,11 @@ function el(tag, attrs = {}, ...kinder) {
   return e;
 }
 
+/** Ersetzt den Inhalt eines Elements. Leere Einträge (null, false) werden übersprungen statt als Text „null“ zu erscheinen. */
+function fuellen(ziel, ...kinder) {
+  ziel.replaceChildren(...kinder.flat().filter((k) => k !== null && k !== undefined && k !== false));
+}
+
 async function api(pfad, optionen = {}) {
   const init = { headers: {}, ...optionen };
   if (optionen.body !== undefined) {
@@ -61,7 +66,7 @@ function fehlerHinweis(e) {
 }
 
 function seite(titel, unterzeile, ...kinder) {
-  inhalt.replaceChildren(
+  fuellen(inhalt, 
     el("h1", { text: titel }),
     unterzeile ? el("p", { klasse: "unterzeile", text: unterzeile }) : null,
     ...kinder
@@ -129,7 +134,7 @@ async function startSeite() {
   const auftraegeBox = el("div", { klasse: "laden", text: "Aufträge werden geladen …" });
   const hinweise = el("div");
 
-  inhalt.replaceChildren(
+  fuellen(inhalt, 
     hinweise,
     held,
     el("section", { klasse: "abschnitt" },
@@ -150,16 +155,16 @@ async function startSeite() {
 
   api("/api/projekte").then(({ projekte }) => {
     projekteBox.className = "";
-    projekteBox.replaceChildren(projekte.length
+    fuellen(projekteBox, projekte.length
       ? el("div", { klasse: "raster" }, projekte.slice(0, 6).map(projektKarte))
       : el("div", { klasse: "leer", text: "Noch keine Projekte. Sobald du etwas erzeugst, erscheint es hier." }));
-  }).catch((e) => projekteBox.replaceChildren(fehlerHinweis(e)));
+  }).catch((e) => fuellen(projekteBox, fehlerHinweis(e)));
 
   api("/api/auftraege?anzahl=6").then(({ eintraege }) => {
     auftraegeBox.className = "";
-    auftraegeBox.replaceChildren(eintraege.length ? auftragsTabelle(eintraege)
+    fuellen(auftraegeBox, eintraege.length ? auftragsTabelle(eintraege)
       : el("div", { klasse: "leer", text: "Noch keine Aufträge." }));
-  }).catch((e) => auftraegeBox.replaceChildren(fehlerHinweis(e)));
+  }).catch((e) => fuellen(auftraegeBox, fehlerHinweis(e)));
 }
 
 async function projekteSeite() {
@@ -171,7 +176,7 @@ async function projekteSeite() {
       el("div", {}, el("h1", { text: "Projekte" }), el("p", { klasse: "unterzeile eng", text: `${projekte.length} Projekte` })),
       el("button", { klasse: "knopf zweitrangig", type: "button", onclick: () => api("/api/oeffnen", { body: {} }).catch(() => {}), text: "Studio-Ordner öffnen" })
     );
-    inhalt.replaceChildren(kopf, projekte.length
+    fuellen(inhalt, kopf, projekte.length
       ? el("div", { klasse: "raster" }, projekte.map(projektKarte))
       : el("div", { klasse: "leer", text: "Noch keine Projekte." }));
   } catch (e) {
@@ -187,7 +192,7 @@ async function projektSeite(name) {
   try {
     daten = await api(`/api/projekt?name=${encodeURIComponent(name)}`);
   } catch (e) {
-    inhalt.replaceChildren(el("h1", { text: "Projekt" }), fehlerHinweis(e));
+    fuellen(inhalt, el("h1", { text: "Projekt" }), fehlerHinweis(e));
     return;
   }
   const medien = daten.dateien.filter((d) => d.art !== "andere");
@@ -197,7 +202,7 @@ async function projektSeite(name) {
 
   const zeigen = () => {
     const liste = medien.filter((d) => aktiv === "alle" || (aktiv === "fertig" ? d.ordner === "fertig" : d.art === aktiv));
-    galerie.replaceChildren(...(liste.length ? liste.map((d) => kachel(name, d)) : [el("div", { klasse: "leer", text: "Hier ist noch nichts." })]));
+    fuellen(galerie, ...(liste.length ? liste.map((d) => kachel(name, d)) : [el("div", { klasse: "leer", text: "Hier ist noch nichts." })]));
   };
 
   const filter = el("div", { klasse: "filter", role: "group", "aria-label": "Dateien filtern" },
@@ -213,11 +218,12 @@ async function projektSeite(name) {
       });
     }));
 
-  inhalt.replaceChildren(
+  fuellen(inhalt, 
     el("div", { klasse: "kopfzeile" },
       el("div", {},
         el("p", { klasse: "unterzeile zurueck" }, el("a", { href: "#/projekte", text: "← Projekte" })),
-        el("h1", { klasse: "gross-anfang", text: titel })),
+        el("h1", { klasse: "gross-anfang", text: titel }),
+        daten.kosten ? el("p", { klasse: "unterzeile eng", text: `Bisher erzeugt für ${credits(daten.kosten)}` }) : null),
       el("button", { klasse: "knopf zweitrangig", type: "button", text: "Ordner öffnen",
         onclick: () => api("/api/oeffnen", { body: { projekt: name } }).catch(() => {}) })
     ),
@@ -235,16 +241,24 @@ function kachel(projekt, d) {
     el("div", { klasse: "kachel-bild" }, vorschau(projekt, d)),
     el("div", { klasse: "kachel-name" },
       d.ordner ? el("span", { klasse: "kachel-ordner", text: `${d.ordner}/` }) : null,
-      d.name)
+      d.name),
+    d.erzeugt ? el("div", { klasse: "kachel-erzeugt", text: erzeugtText(d.erzeugt) }) : null
   );
 }
+
+/** „Nano Banana 2 · 1,5 Credits“: womit eine Datei erzeugt wurde und was sie gekostet hat. */
+function erzeugtText(e) {
+  return [e.modell, e.credits === null ? "" : credits(e.credits)].filter(Boolean).join(" · ");
+}
+
+const credits = (n) => `${zahl(n)} ${n === 1 ? "Credit" : "Credits"}`;
 
 function ansehen(projekt, d) {
   const dialog = document.getElementById("ansicht");
   const buehne = document.getElementById("ansicht-buehne");
-  document.getElementById("ansicht-titel").textContent = `${d.name} · ${groesse(d.groesse)}`;
+  document.getElementById("ansicht-titel").textContent = [d.name, groesse(d.groesse), d.erzeugt ? erzeugtText(d.erzeugt) : ""].filter(Boolean).join(" · ");
   const url = dateiUrl(projekt, d.pfad);
-  buehne.replaceChildren(
+  fuellen(buehne, 
     d.art === "bild" ? el("img", { src: url, alt: d.name })
       : d.art === "video" ? el("video", { src: url, controls: true, autoplay: true, playsinline: true })
         : el("audio", { src: url, controls: true, autoplay: true })
@@ -259,10 +273,11 @@ document.getElementById("ansicht").addEventListener("click", (ev) => { if (ev.ta
 
 function auftragsTabelle(eintraege) {
   return el("table", { klasse: "tabelle" },
-    el("thead", {}, el("tr", {}, el("th", { text: "Wann" }), el("th", { text: "Was" }), el("th", { klasse: "betrag", text: "Credits" }))),
+    el("thead", {}, el("tr", {}, el("th", { text: "Wann" }), el("th", { text: "Was" }), el("th", { text: "Modell" }), el("th", { klasse: "betrag", text: "Credits" }))),
     el("tbody", {}, eintraege.map((t) => el("tr", {},
       el("td", { klasse: "zeit", text: datum(t.zeit, true) }),
       el("td", { text: t.beschreibung || t.art }),
+      el("td", { klasse: "modellname", text: t.modell || "–" }),
       el("td", { klasse: `betrag ${t.betrag < 0 ? "minus" : "plus"}`, text: `${t.betrag > 0 ? "+" : ""}${zahl(t.betrag)}` })
     )))
   );
@@ -281,9 +296,125 @@ async function auftraegeSeite() {
       onclick: (ev) => { ev.currentTarget.disabled = true; laden(weiter).catch((e) => box.append(fehlerHinweis(e))); }
     })) : null;
     box.className = "";
-    box.replaceChildren(alle.length ? auftragsTabelle(alle) : el("div", { klasse: "leer", text: "Noch keine Aufträge." }), knopf);
+    fuellen(box, alle.length ? auftragsTabelle(alle) : el("div", { klasse: "leer", text: "Noch keine Aufträge." }), knopf);
   };
-  try { await laden(); } catch (e) { box.className = ""; box.replaceChildren(fehlerHinweis(e)); }
+  try { await laden(); } catch (e) { box.className = ""; fuellen(box, fehlerHinweis(e)); }
+}
+
+// ---------- Modelle ----------
+
+const ART_REIHENFOLGE = ["video", "bild", "musik", "stimme", "lipsync"];
+const SORTIERUNG = [["preis", "Günstigste zuerst"], ["teuer", "Teuerste zuerst"], ["name", "Nach Name"]];
+
+function preisZeile(m) {
+  if (m.preisVon === null) return el("div", { klasse: "modell-preis" }, el("span", { klasse: "modell-einheit", text: "Preis auf Anfrage" }));
+  return el("div", { klasse: "modell-preis" },
+    m.preisBis > m.preisVon ? el("span", { klasse: "modell-ab", text: "ab" }) : null,
+    el("span", { klasse: "modell-zahl", text: zahl(m.preisVon) }),
+    el("span", { klasse: "modell-einheit", text: `${m.preisVon === 1 ? "Credit" : "Credits"} ${m.einheit}` }));
+}
+
+/** Preistabelle eines Videomodells: je Dauer der Preis pro Auflösung, daneben der Aufschlag für Ton. */
+function preisTabelle(m) {
+  const zeilen = m.preise?.nachDauer;
+  if (zeilen?.length) {
+    const spalten = Object.keys(zeilen[0].preise);
+    const mitTon = zeilen.some((z) => z.tonAufschlag);
+    return el("table", { klasse: "tabelle preistabelle" },
+      el("thead", {}, el("tr", {},
+        el("th", { text: "Dauer" }),
+        spalten.map((a) => el("th", { klasse: "betrag", text: a || "Preis" })),
+        mitTon ? el("th", { klasse: "betrag", text: "mit Ton" }) : null)),
+      el("tbody", {}, zeilen.map((z) => el("tr", {},
+        el("td", { text: `${z.dauer} s` }),
+        spalten.map((a) => el("td", { klasse: "betrag", text: zahl(z.preise[a]) })),
+        mitTon ? el("td", { klasse: "betrag", text: z.tonAufschlag ? `+ ${zahl(z.tonAufschlag)}` : "–" }) : null))));
+  }
+  const nachAufloesung = Object.entries(m.preise?.nachAufloesung || {});
+  if (nachAufloesung.length > 1) {
+    return el("table", { klasse: "tabelle preistabelle" },
+      el("thead", {}, el("tr", {}, el("th", { text: "Auflösung" }), el("th", { klasse: "betrag", text: "Credits" }))),
+      el("tbody", {}, nachAufloesung.map(([a, p]) => el("tr", {}, el("td", { text: a }), el("td", { klasse: "betrag", text: zahl(p) })))));
+  }
+  return null;
+}
+
+function modellKarte(m, guthaben) {
+  const angaben = [];
+  if (m.dauer.length) angaben.push(["Dauer", m.dauer.length > 4 ? `${m.dauer[0]} bis ${m.dauer.at(-1)} Sekunden` : `${m.dauer.join(", ")} Sekunden`]);
+  if (m.aufloesungen.length) angaben.push(["Auflösung", m.aufloesungen.join(", ")]);
+  if (m.formate.length) angaben.push(["Format", m.formate.length > 6 ? `${m.formate.slice(0, 6).join(", ")} und ${m.formate.length - 6} weitere` : m.formate.join(", ")]);
+  const reicht = guthaben !== null && m.preisVon > 0 ? Math.floor(guthaben / m.preisVon) : null;
+  const tabelle = preisTabelle(m);
+  return el("article", { klasse: "modell" },
+    el("div", { klasse: "modell-kopf" },
+      el("h3", { text: m.name }),
+      m.standard ? el("span", { klasse: "abzeichen-fest", text: "Standard" }) : null),
+    el("div", { klasse: "modell-kennung", text: m.id, title: "Kennung des Modells bei AIQORA" }),
+    preisZeile(m),
+    m.kann.length ? el("div", { klasse: "merkmale" }, m.kann.map((k) => el("span", { klasse: "merkmal", text: k }))) : null,
+    angaben.length ? el("dl", { klasse: "modell-angaben" }, angaben.flatMap(([k, v]) => [el("dt", { text: k }), el("dd", { text: v })])) : null,
+    reicht !== null ? el("div", { klasse: "modell-reicht", text: reicht > 0 ? `Dein Guthaben reicht für etwa ${zahl(reicht)}×` : "Dein Guthaben reicht dafür gerade nicht" }) : null,
+    tabelle ? el("details", { klasse: "modell-preise" }, el("summary", { text: "Alle Preise" }), tabelle) : null
+  );
+}
+
+async function modelleSeite() {
+  seite("Modelle", "Was jedes Modell kann und was es kostet. Die Preise kommen direkt von AIQORA.",
+    el("div", { klasse: "laden", text: "Modelle werden geladen …" }));
+  const laden = async (neu) => {
+    let daten;
+    try {
+      daten = await api(`/api/modelle${neu ? "?neu=1" : ""}`);
+    } catch (e) {
+      fuellen(inhalt, el("h1", { text: "Modelle" }), fehlerHinweis(e));
+      return;
+    }
+    const guthaben = await (zustand.guthabenAnfrage ||= guthabenLaden()).catch(() => null);
+    const arten = ART_REIHENFOLGE.filter((a) => daten.arten[a]?.length);
+    let art = arten.includes(zustand.modellArt) ? zustand.modellArt : arten[0];
+    let sortierung = "preis";
+    const liste = el("div", { klasse: "modelle" });
+    const suche = el("input", { klasse: "eingabe suche", type: "search", placeholder: "Modell oder Fähigkeit suchen, z. B. Ton", "aria-label": "Modelle durchsuchen" });
+
+    const zeigen = () => {
+      const wort = suche.value.trim().toLowerCase();
+      const treffer = (daten.arten[art] || [])
+        .filter((m) => !wort || `${m.name} ${m.id} ${m.aliase.join(" ")} ${m.kann.join(" ")}`.toLowerCase().includes(wort))
+        .sort((a, b) => (sortierung === "name" ? a.name.localeCompare(b.name)
+          : sortierung === "teuer" ? (b.preisVon ?? -1) - (a.preisVon ?? -1) : (a.preisVon ?? Infinity) - (b.preisVon ?? Infinity)));
+      fuellen(liste, ...(treffer.length ? treffer.map((m) => modellKarte(m, guthaben))
+        : [el("div", { klasse: "leer", text: "Kein Modell passt zu dieser Suche." })]));
+    };
+    suche.addEventListener("input", zeigen);
+
+    const reiter = el("div", { klasse: "filter", role: "group", "aria-label": "Art der Modelle" },
+      arten.map((a) => el("button", {
+        type: "button", "aria-pressed": String(a === art), text: `${daten.titel[a]?.titel || a} (${daten.arten[a].length})`,
+        onclick: (ev) => {
+          art = zustand.modellArt = a;
+          for (const b of reiter.children) b.setAttribute("aria-pressed", String(b === ev.currentTarget));
+          zeigen();
+        }
+      })));
+    const auswahl = el("select", { klasse: "eingabe auswahl", "aria-label": "Sortierung", onchange: (ev) => { sortierung = ev.currentTarget.value; zeigen(); } },
+      SORTIERUNG.map(([wert, text]) => el("option", { value: wert, text })));
+
+    fuellen(inhalt, 
+      el("div", { klasse: "kopfzeile" },
+        el("div", {},
+          el("h1", { text: "Modelle" }),
+          el("p", { klasse: "unterzeile eng", text: `Preise von AIQORA, Stand ${datum(daten.stand, true)}` })),
+        el("button", { klasse: "knopf zweitrangig", type: "button", text: "Preise neu laden",
+          onclick: (ev) => { ev.currentTarget.disabled = true; laden(true); } })),
+      daten.veraltet ? hinweis("AIQORA ist gerade nicht erreichbar. Du siehst den zuletzt gespeicherten Stand; Preise können sich geändert haben.") : null,
+      reiter,
+      el("div", { klasse: "zeile werkzeugleiste" }, suche, auswahl),
+      liste
+    );
+    zeigen();
+  };
+  await laden(false);
 }
 
 const QUELLEN = {
@@ -307,7 +438,7 @@ async function einstellungenSeite() {
     onsubmit: async (ev) => {
       ev.preventDefault();
       speichern.disabled = true;
-      meldung.replaceChildren(hinweis("Schlüssel wird bei AIQORA geprüft …"));
+      fuellen(meldung, hinweis("Schlüssel wird bei AIQORA geprüft …"));
       try {
         await api("/api/schluessel", { body: { schluessel: eingabe.value } });
         eingabe.value = "";
@@ -316,13 +447,13 @@ async function einstellungenSeite() {
         inhalt.prepend(hinweis("Gespeichert. Dein Schlüssel liegt verschlüsselt auf diesem Rechner.", "ok"));
       } catch (e) {
         eingabe.value = "";
-        meldung.replaceChildren(fehlerHinweis(e));
+        fuellen(meldung, fehlerHinweis(e));
         speichern.disabled = false;
       }
     }
   }, eingabe, speichern);
 
-  inhalt.replaceChildren(
+  fuellen(inhalt, 
     el("h1", { text: "Einstellungen" }),
     el("p", { klasse: "unterzeile", text: `AIQORA Studio ${status.version}` }),
     meldung,
@@ -340,7 +471,7 @@ async function einstellungenSeite() {
           klasse: "knopf gefahr", type: "button", text: "Gespeicherten Schlüssel entfernen",
           onclick: async () => {
             if (!confirm("Den gespeicherten Schlüssel von diesem Rechner entfernen?")) return;
-            await api("/api/schluessel/entfernen", { body: {} }).catch((e) => meldung.replaceChildren(fehlerHinweis(e)));
+            await api("/api/schluessel/entfernen", { body: {} }).catch((e) => fuellen(meldung, fehlerHinweis(e)));
             await einstellungenSeite();
             guthabenLaden();
           }
@@ -350,7 +481,7 @@ async function einstellungenSeite() {
       el("h2", { text: "Studio-Ordner" }),
       el("p", { klasse: "pfad", text: status.studio_ordner }),
       el("button", { klasse: "knopf zweitrangig", type: "button", text: "Ordner öffnen",
-        onclick: () => api("/api/oeffnen", { body: {} }).catch((e) => meldung.replaceChildren(fehlerHinweis(e))) })
+        onclick: () => api("/api/oeffnen", { body: {} }).catch((e) => fuellen(meldung, fehlerHinweis(e))) })
     )
   );
 }
@@ -361,6 +492,7 @@ const SEITEN = {
   "": ["start", startSeite],
   "projekte": ["projekte", projekteSeite],
   "auftraege": ["auftraege", auftraegeSeite],
+  "modelle": ["modelle", modelleSeite],
   "einstellungen": ["einstellungen", einstellungenSeite]
 };
 
@@ -371,7 +503,7 @@ async function navigieren() {
   if (teile[0] === "projekt" && teile[1]) { name = "projekte"; fn = projektSeite; args = [decodeURIComponent(teile[1])]; }
   if (!fn) { [name, fn] = SEITEN[""]; }
   for (const a of document.querySelectorAll(".navigation a")) a.classList.toggle("aktiv", a.dataset.seite === name);
-  try { await fn(...args); } catch (e) { inhalt.replaceChildren(fehlerHinweis(e)); }
+  try { await fn(...args); } catch (e) { fuellen(inhalt, fehlerHinweis(e)); }
 }
 
 window.addEventListener("hashchange", navigieren);

@@ -7,6 +7,9 @@ import * as dateien from "./dateien.mjs";
 import * as schnitt from "./schnitt.mjs";
 import * as byok from "./byok.mjs";
 import * as addons from "./addons.mjs";
+import { erstelleClient } from "./aiqora.mjs";
+import * as modelle from "./modelle.mjs";
+import * as schluessel from "./schluessel.mjs";
 import * as lokal from "./lokal.mjs";
 import * as programme from "./programme.mjs";
 
@@ -30,15 +33,61 @@ function addonInstallieren({ name, lizenz_bestaetigt }) {
   return { gestartet: true, hinweis: `Die Installation von ${a.titel} läuft im Hintergrund (${a.groesse}). addons_liste zeigt den Stand; frühestens nach einer Minute nachsehen.` };
 }
 
-function oberflaecheOeffnen() {
+const SEITEN = ["start", "projekte", "auftraege", "modelle", "einstellungen"];
+
+function oberflaecheOeffnen(seite) {
   return new Promise((resolve, reject) => {
-    execFile(process.execPath, [STARTER], { timeout: 30000, windowsHide: true, env: process.env }, (err, stdout) => {
+    const args = seite && seite !== "start" ? [STARTER, `--seite=${seite}`] : [STARTER];
+    execFile(process.execPath, args, { timeout: 30000, windowsHide: true, env: process.env }, (err, stdout) => {
       let r = null;
       try { r = JSON.parse(String(stdout).trim().split("\n").pop()); } catch { /* unten */ }
       if (err || !r?.ok) reject(new Fehler(r?.fehler || "Die Oberfläche konnte nicht gestartet werden."));
       else resolve({ geoeffnet: true, adresse: r.adresse, hinweis: "Das Studio ist im Browser geöffnet." });
     });
   });
+}
+
+// ---------- Modelle ----------
+
+let aiqoraClient = null;
+/** Verbindung zu AIQORA für den Modellkatalog, mit dem Schlüssel aus dem Studio. */
+function aiqora() {
+  aiqoraClient ||= erstelleClient(async () => (await schluessel.finden()).wert, { name: "aiqora-studio-helfer" });
+  return aiqoraClient;
+}
+
+/** Modelle für die Antwort eines Assistenten: ohne Art eine Übersicht, mit Art eine Zeile je Modell. */
+async function modelleListe({ art, suche, details, aktualisieren }) {
+  const kat = await modelle.katalog(aiqora(), { frisch: aktualisieren === true });
+  const kopf = {
+    stand: kat.stand,
+    ...(kat.veraltet ? { veraltet: "AIQORA ist gerade nicht erreichbar. Das ist der zuletzt gespeicherte Stand; Preise können sich geändert haben." } : {}),
+    quelle: "AIQORA (aiqora_list_models). Preise in Credits."
+  };
+  if (!art && !suche) {
+    return {
+      ...kopf,
+      arten: Object.entries(modelle.ARTEN).map(([name, a]) => {
+        const liste = kat.arten[name] || [];
+        const preise = liste.map((m) => m.preisVon).filter((p) => p !== null);
+        return {
+          art: name, titel: a.titel, anzahl: liste.length,
+          guenstigstes: liste[0] ? modelle.kurz(liste[0]) : null,
+          preis_von: preise.length ? Math.min(...preise) : null,
+          preis_bis: liste.length ? Math.max(...liste.map((m) => m.preisBis ?? 0)) : null
+        };
+      }),
+      hinweis: "Für die Modelle einer Art noch einmal mit art aufrufen (video, bild, musik, stimme, lipsync). Die volle Übersicht mit Preistabellen zeigt die Seite „Modelle“ im Studio (oberflaeche_oeffnen mit seite: modelle)."
+    };
+  }
+  const liste = modelle.filtern(kat, { art, suche });
+  return {
+    ...kopf, art: art || "alle", anzahl: liste.length,
+    modelle: details === true ? liste.slice(0, 12) : liste.map(modelle.kurz),
+    hinweis: liste.length
+      ? "Sortiert nach Preis, günstigstes zuerst. Die Kennung in Klammern ist der Wert für options.model. Die genauen Kosten eines Auftrags nennt aiqora_get_quote."
+      : "Kein Modell passt zu dieser Suche."
+  };
 }
 
 const s = (description) => ({ type: "string", description });
@@ -67,9 +116,20 @@ export const WERKZEUGE = [
   },
   {
     name: "oberflaeche_oeffnen",
-    description: "Öffnet die Oberfläche des Studios im Browser (Projekte, Galerie, Guthaben, Aufträge). Startet sie im Hintergrund, falls sie noch nicht läuft.",
-    inputSchema: obj({}),
-    run: async () => oberflaecheOeffnen()
+    description: "Öffnet die Oberfläche des Studios im Browser (Projekte, Galerie, Guthaben, Aufträge, Modelle). Startet sie im Hintergrund, falls sie noch nicht läuft. Mit seite direkt eine Seite öffnen, z. B. modelle für die Modellübersicht mit Preisen.",
+    inputSchema: obj({ seite: { type: "string", enum: SEITEN, description: "Seite, die geöffnet wird (Standard: start)" } }),
+    run: async ({ seite }) => oberflaecheOeffnen(seite)
+  },
+  {
+    name: "modelle_liste",
+    description: "Welche Modelle AIQORA anbietet, was sie können und was sie kosten (aktuell von AIQORA). Nutze das bei Fragen wie „Welche Videomodelle gibt es?“, „Was kostet ein Bild?“ oder „Welches Modell kann Ton?“. Ohne Angaben: Übersicht je Art. Mit art: eine Zeile je Modell, günstigstes zuerst.",
+    inputSchema: obj({
+      art: { type: "string", enum: Object.keys(modelle.ARTEN), description: "video, bild, musik, stimme oder lipsync" },
+      suche: s("Wort, nach dem gefiltert wird: Name, Kennung oder Fähigkeit, z. B. „kling“, „Ton“, „Endbild“ (optional)"),
+      details: { type: "boolean", description: "true: volle Angaben mit Preistabellen (höchstens 12 Modelle; vorher mit suche eingrenzen)" },
+      aktualisieren: { type: "boolean", description: "true: sofort neu von AIQORA holen statt den Stand der letzten zehn Minuten" }
+    }),
+    run: async (a) => modelleListe(a)
   },
   {
     name: "projekt_anlegen",
@@ -85,12 +145,15 @@ export const WERKZEUGE = [
   },
   {
     name: "datei_herunterladen",
-    description: "Lädt eine Datei (z. B. ein fertiges Ergebnis von AIQORA) über https in den Projektordner. Ohne 'unterordner' wird nach Dateityp sortiert (bilder, clips, audio).",
+    description: "Lädt eine Datei (z. B. ein fertiges Ergebnis von AIQORA) über https in den Projektordner. Ohne 'unterordner' wird nach Dateityp sortiert (bilder, clips, audio). Bei erzeugten Dateien modell und credits mitgeben, damit das Studio zeigt, womit sie erzeugt wurden und was sie gekostet haben.",
     inputSchema: obj({
       url: s("https-Adresse der Datei"),
       projekt: s("Projektname aus projekt_anlegen (optional; sonst Ordner 'downloads')"),
       unterordner: s("bilder, clips, audio oder fertig (optional)"),
-      dateiname: s("Gewünschter Dateiname (optional)")
+      dateiname: s("Gewünschter Dateiname (optional)"),
+      modell: s("Modell, mit dem die Datei erzeugt wurde (Kennung oder Name, wie AIQORA es nennt). Immer mitgeben, wenn bekannt: Das Studio zeigt es bei der Datei."),
+      credits: n("Was dieser Auftrag gekostet hat, in Credits (aus der Antwort von AIQORA, z. B. credits_charged). Immer mitgeben, wenn bekannt."),
+      auftrag: s("Kennung des Auftrags bei AIQORA (task_id), falls bekannt. Mehrere Dateien desselben Auftrags zählen dann nur einmal.")
     }, ["url"]),
     run: async (a) => dateien.herunterladen(a)
   },

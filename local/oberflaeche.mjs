@@ -3,6 +3,7 @@
 // Ohne Angabe: prüft, ob das Studio schon läuft, startet es sonst unsichtbar im Hintergrund und öffnet den Browser.
 //   --dienst        läuft selbst als Server (wird vom Starter im Hintergrund aufgerufen)
 //   --kein-browser  öffnet keinen Browser (für Tests und den Aufruf aus Claude Code)
+//   --seite=<name>  öffnet direkt eine Seite: projekte, auftraege, modelle, einstellungen
 import { spawn, execFile } from "node:child_process";
 import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
@@ -39,7 +40,9 @@ function browserOeffnen(url) {
   kind.unref();
 }
 
-const einstieg = (s) => `http://127.0.0.1:${s.port}/start?t=${s.token}`;
+// --seite=modelle öffnet direkt diese Seite. Der Server lässt nur bekannte Seiten zu.
+const seite = (argv.find((a) => a.startsWith("--seite=")) || "").slice(8).replace(/[^a-z]/g, "");
+const einstieg = (s) => `http://127.0.0.1:${s.port}/start?t=${s.token}${seite ? `&seite=${seite}` : ""}`;
 
 // ---------- Dienst: der eigentliche Server ----------
 

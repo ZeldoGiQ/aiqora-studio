@@ -12,6 +12,8 @@ import { version } from "./studio.mjs";
 import { oeffnen, typVonEndung } from "./dateien.mjs";
 import * as schluessel from "./schluessel.mjs";
 import { SchluesselFehler } from "./aiqora.mjs";
+import * as erzeugt from "./erzeugt.mjs";
+import * as modelle from "./modelle.mjs";
 
 export const WEB_ORDNER = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "web");
 
@@ -40,6 +42,8 @@ const GRUND_HEADER = {
 };
 
 const MEDIEN = { image: "bild", video: "video", audio: "audio" };
+// Seiten, die der Einstiegslink direkt öffnen darf.
+const SEITEN = new Set(["projekte", "auftraege", "modelle", "einstellungen"]);
 const VERSTECKT = new Set(["node_modules", ".git", "__pycache__"]);
 const MAX_DATEIEN = 600;
 const MAX_TIEFE = 3;
@@ -121,6 +125,7 @@ export function projektDateien(ordner) {
     try { eintraege = readdirSync(dir, { withFileTypes: true }); } catch { return; }
     for (const e of eintraege) {
       if (e.name.startsWith(".") || VERSTECKT.has(e.name)) continue;
+      if (tiefe === 0 && e.name === erzeugt.DATEI) continue; // interne Liste, keine Datei des Nutzers
       const voll = path.join(dir, e.name);
       if (e.isDirectory()) { laufen(voll, tiefe + 1); continue; }
       if (!e.isFile()) continue;
@@ -174,6 +179,27 @@ function notizenLesen(ordner) {
   const datei = path.join(ordner, "notizen.md");
   if (!existsSync(datei)) return "";
   return readFileSync(datei, "utf8").slice(0, 8000);
+}
+
+// ---------- Modell und Kosten ----------
+
+/** Nur die Angaben, die die Oberfläche zeigt, in sicheren Typen. */
+function erzeugtFuerAnzeige(e) {
+  return {
+    modell: typeof e.modell_name === "string" ? e.modell_name.slice(0, 120) : typeof e.modell === "string" ? e.modell.slice(0, 120) : "",
+    credits: typeof e.credits === "number" && Number.isFinite(e.credits) ? e.credits : null
+  };
+}
+
+/**
+ * Modell eines Auftrags aus der Liste von AIQORA: das Feld model, falls AIQORA es liefert, sonst ein Modellname in
+ * Klammern am Ende der Beschreibung („Bildgenerierung (Nano Banana 2)“), wenn er im Katalog steht.
+ */
+export function auftragsModell(t, kat) {
+  const feld = t?.model ?? t?.metadata?.model;
+  if (typeof feld === "string" && feld) return (modelle.finden(feld, kat)?.name || feld).slice(0, 120);
+  const klammer = /\(([^()]{2,80})\)\s*$/.exec(String(t?.description || ""))?.[1];
+  return klammer && kat ? modelle.finden(klammer, kat)?.name || "" : "";
 }
 
 // ---------- Datei ausliefern (mit Range für Videos) ----------
@@ -236,8 +262,9 @@ export function erstelleServer({ token, aiqora, beimZugriff = () => {} }) {
     // Einstieg: Kennwort aus dem Link gegen ein Sitzungs-Cookie tauschen.
     if (url.pathname === "/start") {
       if (!gleich(url.searchParams.get("t") || "", token)) { senden(res, 403, SEITE_OHNE_SITZUNG, { "Content-Type": "text/html; charset=utf-8" }); return; }
+      const ziel = url.searchParams.get("seite");
       senden(res, 303, "", {
-        "Location": "/",
+        "Location": SEITEN.has(ziel) ? `/#/${ziel}` : "/",
         "Set-Cookie": `${cookieName}=${token}; HttpOnly; SameSite=Strict; Path=/`,
         "Cache-Control": "no-store"
       });
@@ -309,14 +336,22 @@ async function bearbeiten(req, res, url, aiqora) {
     const vor = url.searchParams.get("vor");
     if (vor && /^\d{4}-\d{2}-\d{2}T[\d:.+Z-]+$/.test(vor)) args.before = vor;
     const r = await aiqora.aufrufen("aiqora_list_transactions", args);
+    const kat = await modelle.katalog(aiqora).catch(() => null); // nur für die Modellnamen; ohne Katalog geht es auch
     const eintraege = (r.transactions || []).map((t) => ({
       id: String(t.id || ""),
       betrag: Number(t.amount) || 0,
       art: String(t.type || ""),
       beschreibung: String(t.description || "").slice(0, 200),
+      modell: auftragsModell(t, kat),
       zeit: String(t.created_at || "")
     }));
     json(res, 200, { eintraege, weiter: r.next_before || null });
+    return;
+  }
+
+  if (get && p === "/api/modelle") {
+    const kat = await modelle.katalog(aiqora, { frisch: url.searchParams.get("neu") === "1" });
+    json(res, 200, { stand: kat.stand, veraltet: kat.veraltet, arten: kat.arten, titel: modelle.ARTEN });
     return;
   }
 
@@ -328,7 +363,9 @@ async function bearbeiten(req, res, url, aiqora) {
   if (get && p === "/api/projekt") {
     const name = url.searchParams.get("name");
     const ordner = projektOrdner(name);
-    json(res, 200, { name, dateien: projektDateien(ordner), notizen: notizenLesen(ordner) });
+    const merk = erzeugt.lesen(ordner);
+    const dateien = projektDateien(ordner).map((d) => (merk[d.pfad] ? { ...d, erzeugt: erzeugtFuerAnzeige(merk[d.pfad]) } : d));
+    json(res, 200, { name, dateien, notizen: notizenLesen(ordner), kosten: erzeugt.summe(merk) });
     return;
   }
 

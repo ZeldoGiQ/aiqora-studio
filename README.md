@@ -10,6 +10,7 @@ AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in
 
 - **Alles in einem Ordner:** jedes Vorhaben bekommt einen Projektordner mit Bildern, Clips, Ton und dem fertigen Ergebnis.
 - **Eigene Oberfläche:** Das Studio öffnet sich im Browser, läuft aber nur auf deinem Rechner. Projekte mit Galerie und Player, Guthaben und Aufträge auf einen Blick.
+- **Modelle und Preise:** Eine Übersicht aller Modelle von AIQORA mit Fähigkeiten und Preisen, immer aktuell. Bei jedem Ergebnis siehst du, welches Modell es erzeugt hat und was es gekostet hat.
 - **Spart deine Claude-Tokens:** Aufwendige Abläufe (Musikvideo, Cinema Agent, Short Drama) laufen als ein einziger Auftrag bei AIQORA, nicht als hunderte Einzelschritte auf deinem Rechner.
 - **Updates inklusive:** neue Funktionen kommen automatisch.
 
@@ -51,6 +52,7 @@ AIQORA Studio verbindet Claude Code mit [AIQORA](https://aiqora.ai). Du sagst in
 | `/aiqora-studio:doku` | Eine kurze Dokumentation |
 | `/aiqora-studio:figur` | Deine Figuren ansehen, anlegen, neu einkleiden |
 | `/aiqora-studio:status` | Guthaben und laufende Aufträge |
+| `/aiqora-studio:modelle` | Welche Modelle es gibt, was sie können und kosten |
 | `/aiqora-studio:schluessel` | Eigene Anbieter-Schlüssel (BYOK) prüfen |
 | `/aiqora-studio:addons` | Grafik und Soundeffekte dazuholen (HyperFrames, Earshot) |
 | `/aiqora-studio:lokal` | Studio mit einem lokalen Modell nutzen |

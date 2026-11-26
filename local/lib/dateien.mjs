@@ -6,6 +6,7 @@ import { pipeline } from "node:stream/promises";
 import path from "node:path";
 import { Fehler, dateiname, freierPfad, imStudio, studioOrdner, umgebung } from "./pfade.mjs";
 import { projektPfad } from "./studio.mjs";
+import * as erzeugt from "./erzeugt.mjs";
 
 const STANDARD_UPLOAD_HOSTS = [".supabase.co", "aiqora.ai", ".aiqora.ai"];
 const MAX_UPLOAD_BYTES = 2 * 1024 ** 3; // 2 GB
@@ -43,7 +44,7 @@ export function typVonEndung(p) {
   return ENDUNG_TYP[path.extname(p).toLowerCase()] || "application/octet-stream";
 }
 
-export async function herunterladen({ url, projekt, unterordner, dateiname: wunschName }) {
+export async function herunterladen({ url, projekt, unterordner, dateiname: wunschName, modell, credits, auftrag }) {
   const u = pruefeHttps(url);
   let zielOrdner;
   if (projekt) projektPfad(projekt); // prüft vor dem Herunterladen, ob es das Projekt gibt
@@ -66,7 +67,10 @@ export async function herunterladen({ url, projekt, unterordner, dateiname: wuns
     if (existsSync(ziel)) unlinkSync(ziel);
     throw new Fehler("Herunterladen wurde unterbrochen.");
   }
-  return { pfad: ziel, bytes: statSync(ziel).size, typ: typ || typVonEndung(ziel) };
+  const ergebnis = { pfad: ziel, bytes: statSync(ziel).size, typ: typ || typVonEndung(ziel) };
+  // Womit erzeugt und was es gekostet hat: steht danach in der Oberfläche bei der Datei.
+  const merk = projekt ? erzeugt.merken(projektPfad(projekt), ziel, { modell, credits, auftrag }) : null;
+  return merk ? { ...ergebnis, erzeugt_mit: merk } : ergebnis;
 }
 
 export async function hochladen({ pfad, upload_url, methode = "PUT", content_type, felder, datei_feld = "file" }) {

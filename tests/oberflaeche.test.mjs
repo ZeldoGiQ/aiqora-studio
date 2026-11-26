@@ -23,13 +23,25 @@ const { erstelleServer } = await import("../local/lib/oberflaeche.mjs");
 const TOKEN = "t".repeat(43);
 const PNG = Buffer.from("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d4944415478da63f8ffff3f0005fe02fea7d6a6b30000000049454e44ae426082", "hex");
 const aufrufe = [];
+const MODELLE = {
+  domains: {
+    image: [{ id: "nano-banana-2", displayName: "Nano Banana 2", aliases: [], credits: 1.5, creditsUnit: "per image (1K)", resolutions: ["1K", "2K"], aspectRatios: ["1:1"], supportsImageInput: true, resolutionCredits: { "1K": 1.5, "2K": 1.7 } }],
+    video: [{ id: "kling-3.0", displayName: "Kling 3.0 Standard", aliases: ["kling"], credits: 7, creditsUnit: "per 5s clip (base resolution)", durations: [5, 10], resolutions: ["1080p"], aspectRatios: ["16:9"], supportsSound: true, creditsByDuration: { 5: 7, 10: 14 }, soundCreditsExtra: { 5: 6, 10: 12 } }]
+  },
+  lipsyncModels: []
+};
 const fakeAiqora = {
   async aufrufen(name, args) {
     aufrufe.push({ name, args });
     if (name === "aiqora_get_credit_balance") return { effectiveBalance: 123.5 };
     if (name === "aiqora_list_transactions") {
-      return { transactions: [{ id: "a", amount: -9, type: "spend", description: "Lip Sync", created_at: "2026-11-16T10:00:00Z" }], next_before: null };
+      return { transactions: [
+        { id: "a", amount: -9, type: "spend", description: "Lip Sync", created_at: "2026-11-16T10:00:00Z" },
+        { id: "b", amount: -1.5, type: "spend", description: "Bildgenerierung (Nano Banana 2)", created_at: "2026-11-16T09:00:00Z" },
+        { id: "c", amount: -7, type: "spend", description: "Video-Generierung: Katze (kein Modell)", model: "kling", created_at: "2026-11-16T08:00:00Z" }
+      ], next_before: null };
     }
+    if (name === "aiqora_list_models") return MODELLE;
     throw new Error("unerwartet");
   },
   async schluesselPruefen() { return true; },
@@ -129,7 +141,48 @@ test("Guthaben und Aufträge kommen von AIQORA", async () => {
   assert.equal((await anfrage("/api/konto", { header: cookie() })).json.guthaben, 123.5);
   const a = await anfrage("/api/auftraege?anzahl=5&vor=2026-11-16T10:00:00Z", { header: cookie() });
   assert.equal(a.json.eintraege[0].betrag, -9);
-  assert.deepEqual(aufrufe.at(-1), { name: "aiqora_list_transactions", args: { limit: 5, before: "2026-11-16T10:00:00Z" } });
+  assert.deepEqual(aufrufe.findLast((x) => x.name === "aiqora_list_transactions"), { name: "aiqora_list_transactions", args: { limit: 5, before: "2026-11-16T10:00:00Z" } });
+  assert.deepEqual(a.json.eintraege.map((e) => e.modell), ["", "Nano Banana 2", "Kling 3.0 Standard"],
+    "Modell aus der Klammer der Beschreibung oder aus dem Feld model, sonst leer");
+});
+
+test("Modellübersicht kommt von AIQORA, mit Preisen und Fähigkeiten", async () => {
+  const m = (await anfrage("/api/modelle", { header: cookie() })).json;
+  assert.equal(m.veraltet, false);
+  assert.ok(Date.parse(m.stand) > 0);
+  assert.deepEqual(m.arten.bild.map((x) => [x.id, x.name, x.preisVon, x.einheit]), [["nano-banana-2", "Nano Banana 2", 1.5, "pro Bild (1K)"]]);
+  const kling = m.arten.video[0];
+  assert.deepEqual(kling.kann, ["Ton"]);
+  assert.deepEqual(kling.preise.nachDauer, [{ dauer: 5, preise: { "1080p": 7 }, tonAufschlag: 6 }, { dauer: 10, preise: { "1080p": 14 }, tonAufschlag: 12 }]);
+  assert.equal(kling.preisBis, 26);
+  assert.equal(m.titel.video.titel, "Video");
+  const vorher = aufrufe.filter((x) => x.name === "aiqora_list_models").length;
+  await anfrage("/api/modelle", { header: cookie() });
+  assert.equal(aufrufe.filter((x) => x.name === "aiqora_list_models").length, vorher, "innerhalb von zehn Minuten wird nicht neu geladen");
+  await anfrage("/api/modelle?neu=1", { header: cookie() });
+  assert.equal(aufrufe.filter((x) => x.name === "aiqora_list_models").length, vorher + 1, "„Preise neu laden“ holt sofort neu");
+  assert.equal((await anfrage("/api/modelle")).status, 401, "ohne Sitzung gibt es nichts");
+});
+
+test("Einstiegslink öffnet nur bekannte Seiten", async () => {
+  const ziel = async (seite) => (await anfrage(`/start?t=${TOKEN}&seite=${encodeURIComponent(seite)}`)).header.location;
+  assert.equal(await ziel("modelle"), "/#/modelle");
+  assert.equal(await ziel("auftraege"), "/#/auftraege");
+  assert.equal(await ziel("//boese.example"), "/");
+  assert.equal(await ziel("javascript:alert(1)"), "/");
+});
+
+test("Projekt zeigt Modell und Kosten der erzeugten Dateien", async () => {
+  const erzeugt = await import("../local/lib/erzeugt.mjs");
+  const ordner = path.join(studio, "projekte", "2026-11-16-test-projekt");
+  erzeugt.merken(ordner, path.join(ordner, "bilder", "eins.png"), { modell: "nano-banana-2", credits: 1.5, auftrag: "t1" });
+  erzeugt.merken(ordner, path.join(ordner, "fertig", "film.mp4"), { modell: "<b>fremd</b>", credits: 7 });
+  const p = (await anfrage("/api/projekt?name=2026-11-16-test-projekt", { header: cookie() })).json;
+  const nach = Object.fromEntries(p.dateien.map((d) => [d.pfad, d.erzeugt]));
+  assert.deepEqual(nach["bilder/eins.png"], { modell: "Nano Banana 2", credits: 1.5 });
+  assert.deepEqual(nach["fertig/film.mp4"], { modell: "<b>fremd</b>", credits: 7 }, "unbekannte Namen kommen als Text; die Seite setzt sie per textContent");
+  assert.equal(nach["notizen.md"], undefined);
+  assert.equal(p.kosten, 8.5);
 });
 
 test("Projekte und Dateien werden aufgelistet", async () => {
