@@ -2,6 +2,13 @@
 
 Hier steht in einfachen Worten, was sich in jeder Version geändert hat.
 
+## 0.5.0
+
+- **Neu: Modellübersicht.** Die Seite „Modelle“ im Studio zeigt alle Modelle von AIQORA: Video, Bild, Musik, Stimme und Lippensynchron, mit Fähigkeiten, Preisen und Preistabellen. Du siehst auch, wie oft dein Guthaben für ein Modell reicht. Die Preise kommen direkt von AIQORA und sind höchstens zehn Minuten alt.
+- **Neu: Modell und Kosten bei jedem Ergebnis.** In der Galerie steht bei jeder erzeugten Datei, welches Modell sie erzeugt hat und was sie gekostet hat. Das Projekt zeigt die Summe. Die Auftragsliste hat eine Spalte „Modell“.
+- **Fragen an den Assistenten:** „Welche Videomodelle gibt es?“ oder „Was kostet ein Bild?“ beantwortet er jetzt mit aktuellen Angaben von AIQORA (`/aiqora-studio:modelle`), auch in Codex und Antigravity.
+- Behoben: An einigen Stellen der Oberfläche stand das Wort „null“, zum Beispiel unter der Auftragsliste.
+
 ## 0.4.1
 
 - Ein Start-Text für alle: `install/start-prompt.md` gilt jetzt für Claude Code, Codex und Antigravity. Den zweiten Text (`start-prompt-andere.md`) gibt es nicht mehr.
